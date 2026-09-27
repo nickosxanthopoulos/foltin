@@ -66,7 +66,7 @@ Ready-Made Mitigation Strategies (WP6)Applying stochastic signal optimization to
 ## WP6 protocol - Mitigation Tables, Strategies - Traffic Light Altering
 
 
-Max-Pressure Control:
+**Max-Pressure Control:
 
 A decentralized, reactive system that changes traffic lights dynamically based on which lane has the highest "pressure" (longest queue of waiting vehicles). 
 
@@ -85,3 +85,30 @@ To build it, you compare your performance indicators (like delay, emissions, and
 Baseline State: The network running normally on a standard day.
 
 Disrupted State: The network suffering an unmanaged shock (e.g., a lane closure or accident).
+
+- WHY THIS DOESNT WORK -
+
+The "Fake" Saturation Problem: When there is a vehicle that has stopped directly on top of the sensor, it is translated by the sensor as if there is congestion in the lane and so the traffic light turns green by demand. The algorithm will try to hold the light green forever, permanently starving all cross-traffic.
+Because SCOOT/SCATS adapts green splits based on how saturated the lanes are, a parked car registers as 100% saturation. It will continuously allocate the maximum possible green time to that empty lane every single cycle, wasting precious time.
+
+<ins> What needs to happen:
+
+Program a Maximum Green Constraint (e.g., a hard cap of 60 seconds) into your SUMO traffic lights. No matter how high the pressure gets, the system must force a phase change when the timer hits zero. Real-world systems also use "Detector Fault Logic"—if a sensor reads 100% occupancy for several minutes without a single gap, the system flags the sensor as broken and ignores it. Could be used but not really optimal as it's more mpakaliko and not truly optimal. 
+
+Introducing the Discharge Rate: ( Python has to look at both queue length from the sensor + the discharge rate - secondary sensor)
+For a lane that is blocked, the discharge rate is exactly zero 0 . This means that no cars pass the intersection and so the lane doesn't "discharge" . 
+
+Python turns the light green for the jammed lane
+Python waits 5 seconds to let drivers react
+Pyhton asks "How many cars have crossed the line in the last 5 seconds?"
+Sensor sends a signal that says "0 cars passed on the lane"
+Python realizes that the lane is blocked and or the queue sensor is broken.
+Python immediately executes a "Phase Abort." It cuts the green light short, triggers the yellow light, and gives the green light to the cross-traffic so the intersection does not go to waste.
+
+What happens if 2 cars pass the blocking vehicle by switching lanes and then switch back into the blocked lane- the sensor counts 2 cars that passed by. If the light is green and the downstream sensor detects less than 15% of the upstream sensor's volume, flag a lane blockage and abort the green phase.
+
+**Sensor A 
+(The Upstream Detector): Placed at the beginning of the road segment, this sensor acts as the "Input." It counts those 15 cars entering the lane.
+**Sensor B
+(The Downstream/Stop-Line Detector): Placed at the traffic light, this sensor acts as the "Output." It measures the actual discharge rate.
+
