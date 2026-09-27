@@ -57,6 +57,8 @@ Graphs-Statistics of C02 Emissions and other measures.
 Python starts solving and then takes the outputs that are visualized by InfluxDB and Grafana.
 When SUMO and InfluxDB have to be connected Generative AI will take data from the E2 detector(think of it as a camera above the street on the SUMO simution that collects data) , extracts code from TraCl and pushes it to dashboard
 
+Since you are already thinking in terms of multi-sensor data fusion, this would look fantastic on your Grafana dashboard for Work Package 4. You could have a live chart plotting "Sensor A Arrivals" vs. "Sensor B Departures," where a massive divergence between the two lines visually proves to your professor exactly when and where the accident happened.
+
 
 ## WP5 protocol - Socioeconomic calculations & GIS Analysis
 
