@@ -66,7 +66,7 @@ Ready-Made Mitigation Strategies (WP6)Applying stochastic signal optimization to
 ## WP6 protocol - Mitigation Tables, Strategies - Traffic Light Altering
 
 
-Ready-Made Mitigation Strategies (WP6)You and Andreas discussed applying stochastic signal optimization to reduce the socio-economic costs of your disrupted intersection. This paper provides the theoretical breakdown and actual Python logic for the two most dominant optimization strategies: Max-Pressure Control:
+Max-Pressure Control:
 
 A decentralized, reactive system that changes traffic lights dynamically based on which lane has the highest "pressure" (longest queue of waiting vehicles). 
 
