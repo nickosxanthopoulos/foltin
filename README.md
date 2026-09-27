@@ -107,8 +107,8 @@ Python immediately executes a "Phase Abort." It cuts the green light short, trig
 
 What happens if 2 cars pass the blocking vehicle by switching lanes and then switch back into the blocked lane- the sensor counts 2 cars that passed by. If the light is green and the downstream sensor detects less than 15% of the upstream sensor's volume, flag a lane blockage and abort the green phase.
 
-**Sensor A 
+**Sensor A**
 (The Upstream Detector): Placed at the beginning of the road segment, this sensor acts as the "Input." It counts those 15 cars entering the lane.
-**Sensor B
+**Sensor B**
 (The Downstream/Stop-Line Detector): Placed at the traffic light, this sensor acts as the "Output." It measures the actual discharge rate.
 
