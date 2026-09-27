@@ -105,10 +105,14 @@ Sensor sends a signal that says "0 cars passed on the lane"
 Python realizes that the lane is blocked and or the queue sensor is broken.
 Python immediately executes a "Phase Abort." It cuts the green light short, triggers the yellow light, and gives the green light to the cross-traffic so the intersection does not go to waste.
 
-What happens if 2 cars pass the blocking vehicle by switching lanes and then switch back into the blocked lane- the sensor counts 2 cars that passed by. If the light is green and the downstream sensor detects less than 15% of the upstream sensor's volume, flag a lane blockage and abort the green phase.
+What happens if 2 cars pass the blocking vehicle by switching lanes and then switch back into the blocked lane- the sensor counts 2 cars that passed by. If the light is green and the downstream sensor detects less than 15% of the upstream sensor's volume, flag a lane blockage and abort the green phase. - This has to be integrated - 
 
 **Sensor A**
 (The Upstream Detector): Placed at the beginning of the road segment, this sensor acts as the "Input." It counts those 15 cars entering the lane.
+
 **Sensor B**
 (The Downstream/Stop-Line Detector): Placed at the traffic light, this sensor acts as the "Output." It measures the actual discharge rate.
+
+**The "Delta"** (Anomaly Trigger): Your Python script simply subtracts the output from the input. If Sensor A counts 15 cars, but Sensor B only counts 0 to 2 cars passing during a green phase, the mathematical delta rapidly spikes. The algorithm instantly knows there is a physical blockage trapped between Sensor A and Sensor B.
+
 
