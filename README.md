@@ -118,4 +118,4 @@ What happens if 2 cars pass the blocking vehicle by switching lanes and then swi
 
 **The "Delta"** (Anomaly Trigger): Your Python script simply subtracts the output from the input. If Sensor A counts 15 cars, but Sensor B only counts 0 to 2 cars passing during a green phase, the mathematical delta rapidly spikes. The algorithm instantly knows there is a physical blockage trapped between Sensor A and Sensor B.
 
-** I WOULD NEED TO ADD THE CASCADE IMPACT OF THESE DISRUPTIONS **
+**I WOULD NEED TO ADD THE CASCADE IMPACT OF THESE DISRUPTIONS**
