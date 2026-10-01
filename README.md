@@ -8,6 +8,10 @@ Traffic Congestion Simulation
 
 ## WP2 protocol -Mathematical Programming Module
 
+**Add the cascade** impact of these disruptions in real time. 
+Try to find a dataset that is connected to a crossroad, so we can have starting variables. After that we could maybe have the disruption scenarios done with Monte-Carlo Simulation . 
+Find some disruptive scenarios examples
+
 
 The academic paper validates that traffic is random and SUMO experiments are very insufficient,  so they use Monte-Carlo simulations to make 100 different scenarios. 
 SUMO will be used anyways.
