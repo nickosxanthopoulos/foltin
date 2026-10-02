@@ -17,7 +17,7 @@ The academic paper validates that traffic is random and SUMO experiments are ver
 SUMO will be used anyways.
 
 Generative AI can help define the 5 temperaments of drivers, speedFactor, accel ?  ? , 
-
+**LOOK INTO QGIS**
 ## WP3 protocol - SUMO Baseline
 Probabilistic Spawning: Instead of spawning vehicles at fixed, robotic intervals, the paper strongly recommends using probabilistic (randomized) departure processes to accurately create real-world traffic jams and platoons.
 
@@ -69,7 +69,7 @@ Since you are already thinking in terms of multi-sensor data fusion, this would 
 
 Ready-Made Mitigation Strategies (WP6)Applying stochastic signal optimization to reduce the socio-economic costs of your disrupted intersection.
 
-
+**LOOK INTO QGIS**
 ## WP6 protocol - Mitigation Tables, Strategies - Traffic Light Altering
 
 
@@ -125,3 +125,5 @@ What happens if 2 cars pass the blocking vehicle by switching lanes and then swi
 **I WOULD NEED TO ADD THE CASCADE IMPACT OF THESE DISRUPTIONS**
 
 What happens in other roads that are connected, the current crossroad we are taking the research at. What happens to close buildings (universities, hospitals etc)
+
+**LOOK INTO QGIS**
