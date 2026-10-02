@@ -106,10 +106,15 @@ Introducing the Discharge Rate: ( Python has to look at both queue length from t
 For a lane that is blocked, the discharge rate is exactly zero 0 . This means that no cars pass the intersection and so the lane doesn't "discharge" . 
 
 Python turns the light green for the jammed lane
+
 Python waits 5 seconds to let drivers react
+
 Pyhton asks "How many cars have crossed the line in the last 5 seconds?"
+
 Sensor sends a signal that says "0 cars passed on the lane"
+
 Python realizes that the lane is blocked and or the queue sensor is broken.
+
 Python immediately executes a "Phase Abort." It cuts the green light short, triggers the yellow light, and gives the green light to the cross-traffic so the intersection does not go to waste.
 
 What happens if 2 cars pass the blocking vehicle by switching lanes and then switch back into the blocked lane- the sensor counts 2 cars that passed by. If the light is green and the downstream sensor detects less than 15% of the upstream sensor's volume, flag a lane blockage and abort the green phase. - This has to be integrated - 
