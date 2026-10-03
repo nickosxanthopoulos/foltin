@@ -49,6 +49,8 @@ The driver's temperament(passive-aggressive) will be modified through a differen
 
 -IMPORTANT- This random driver shuffling happens in every single scenario you test (Baseline, Disrupted, and Mitigated). It proves to your professor that your results are not just a lucky coincidence based on one specific arrangement of cars.
 
+<img width="691" height="536" alt="image" src="https://github.com/user-attachments/assets/64cdc835-4f23-473f-a68f-382de0830157" />
+
 NOW FOR THE DISRUPTIONS
 -Physical Disruptions (Crash/Closure): You physically block a lane in the SUMO network using TraCI or Netedit for a specific amount of time.
 
