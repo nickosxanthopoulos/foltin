@@ -43,6 +43,7 @@ FOR SUMO TO WORK WE NEED 3 DIFFERENT XML FILES:
 .net.xml (The Map): Built visually in netedit, or generated automatically from OpenStreetMap data using a SUMO command-line tool called netconvert.
 
 3. The Demand File (.rou.xml) : this will be definitely be written in code(who is driving and direction, routes, spawn rate of vehicles)
+<img width="713" height="179" alt="image" src="https://github.com/user-attachments/assets/e5c2242b-934f-463e-b899-76e665e48345" />
 
 4. The Configuration File (.sumocfg) : this is the master file, it will be able to take both of the above files(.net.xml , .rou.xml) aswell as other parameters like start/end times.
 
