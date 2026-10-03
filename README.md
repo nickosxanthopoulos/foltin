@@ -40,10 +40,11 @@ FOR SUMO TO WORK WE NEED 3 DIFFERENT XML FILES:
 
 
 1. The Network File (.net.xml) : physical geometry of intersection, can be drawn in -netedit-(graphical interface) and doesn't need to be written in code
+.net.xml (The Map): Built visually in netedit, or generated automatically from OpenStreetMap data using a SUMO command-line tool called netconvert.
 
-2. The Demand File (.rou.xml) : this will be definitely be written in code(who is driving and direction, routes, spawn rate of vehicles)
+3. The Demand File (.rou.xml) : this will be definitely be written in code(who is driving and direction, routes, spawn rate of vehicles)
 
-3. The Configuration File (.sumocfg) : this is the master file, it will be able to take both of the above files(.net.xml , .rou.xml) aswell as other parameters like start/end times.
+4. The Configuration File (.sumocfg) : this is the master file, it will be able to take both of the above files(.net.xml , .rou.xml) aswell as other parameters like start/end times.
 
 The driver's temperament(passive-aggressive) will be modified through a different Monte-Carlo Simulation with lets say 5 different scenarios. This will be shown in the .rou.xml file by changing the random seed. Some parameters that can be stored in this file can be the time the passenger leaves for work, and how they change lanes.
 
