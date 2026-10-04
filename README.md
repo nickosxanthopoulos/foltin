@@ -63,12 +63,12 @@ NOW FOR THE DISRUPTIONS
 This could be determined with Monte-Carlo Simulation(higher difficulty but much nicer) - it can determine the ANNUAL cost of traffic disruptions.
 ==> Lets call this monte carlo simulation MC-disruptions and the other one that tracks the drivers temperament as MC-temperament.
 
-MICROSCOPIC ANALYSIS - Cordoning - Sub-networking :  Υπολογίζει με ακρίβεια χιλιοστού και δευτερολέπτου τη συμπεριφορά κάθε οχήματος (επιτάχυνση, απόσταση ασφαλείας μέσω car-following μοντέλων, αλλαγή λωρίδας). Είναι εξαιρετικά λεπτομερές αλλά βαρύ υπολογιστικά.
+**MICROSCOPIC ANALYSIS - Cordoning - Sub-networking :**  Υπολογίζει με ακρίβεια χιλιοστού και δευτερολέπτου τη συμπεριφορά κάθε οχήματος (επιτάχυνση, απόσταση ασφαλείας μέσω car-following μοντέλων, αλλαγή λωρίδας). Είναι εξαιρετικά λεπτομερές αλλά βαρύ υπολογιστικά.
  
 <img width="759" height="149" alt="image" src="https://github.com/user-attachments/assets/d599f57a-0c7d-4ddc-8b07-c72dd6a25c52" />
 
 
-MESOSCOPIC ANALYSIS : 
+**MESOSCOPIC ANALYSIS : **
 
 <img width="797" height="414" alt="image" src="https://github.com/user-attachments/assets/576501b8-f745-44be-8b1a-252964db708c" />
 
