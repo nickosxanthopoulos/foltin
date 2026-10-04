@@ -53,6 +53,8 @@ The driver's temperament(passive-aggressive) will be modified through a differen
 
 <img width="691" height="536" alt="image" src="https://github.com/user-attachments/assets/64cdc835-4f23-473f-a68f-382de0830157" />
 
+<img width="796" height="283" alt="image" src="https://github.com/user-attachments/assets/904c3715-89ad-47c2-94aa-8daeba269edd" />
+
 NOW FOR THE DISRUPTIONS
 -Physical Disruptions (Crash/Closure): You physically block a lane in the SUMO network using TraCI or Netedit for a specific amount of time.
 
