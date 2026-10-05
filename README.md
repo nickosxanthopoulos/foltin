@@ -23,6 +23,8 @@ Probabilistic Spawning: Instead of spawning vehicles at fixed, robotic intervals
 
 Strategic Sensor Placement: To feed accurate data into your Python scripts, the authors recommend using specific lane area detectors (E2) positioned carefully at intersections to measure physical queue lengths - this might not happen but its possible
 
+<img width="826" height="342" alt="image" src="https://github.com/user-attachments/assets/f750b76e-6a19-4cab-b501-98c903f74559" />
+
 It is highly recommended to:
 The authors warn that automatically imported OpenStreetMap geometries often contain inconsistencies and unrealistic junction configurations. They recommend manually constructing the infrastructure using SUMO's -netedit- tool with satellite imagery as a background.
 
@@ -153,3 +155,13 @@ What happens if 2 cars pass the blocking vehicle by switching lanes and then swi
 What happens in other roads that are connected, the current crossroad we are taking the research at. What happens to close buildings (universities, hospitals etc)
 
 **LOOK INTO QGIS**
+
+
+
+
+**HOW TO MAKE SUMO WORK**
+
+<img width="796" height="227" alt="image" src="https://github.com/user-attachments/assets/864ab694-3b27-47ac-bd37-e7cff7357e68" />
+
+<img width="891" height="375" alt="image" src="https://github.com/user-attachments/assets/a45f610c-5d07-43db-8f55-68a76e5fb1d2" />
+
