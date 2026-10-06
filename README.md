@@ -25,6 +25,9 @@ Strategic Sensor Placement: To feed accurate data into your Python scripts, the 
 
 <img width="826" height="342" alt="image" src="https://github.com/user-attachments/assets/f750b76e-6a19-4cab-b501-98c903f74559" />
 
+
+<img width="884" height="678" alt="image" src="https://github.com/user-attachments/assets/583e47d3-0db3-47d1-91d5-cd586f02a6d3" />
+
 It is highly recommended to:
 The authors warn that automatically imported OpenStreetMap geometries often contain inconsistencies and unrealistic junction configurations. They recommend manually constructing the infrastructure using SUMO's -netedit- tool with satellite imagery as a background.
 
