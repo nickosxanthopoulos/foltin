@@ -90,6 +90,9 @@ We can see that the simulation is running just right, infact for 1 real time hou
 <img width="683" height="348" alt="image" src="https://github.com/user-attachments/assets/722b2f48-8d2e-4fd2-8c7b-977599b1afd5" />
 
 Now that this is fine, i tried to implement an E2 detector, so we can detect how much saturation* is at a certain road lane. After implenting it we saw some Plhrothta(saturation%). Using this block of code we successfully added more cars into the timesteps (1500-1899) until our new addition the **AMBULANCE** got added. 
+<img width="448" height="599" alt="image" src="https://github.com/user-attachments/assets/1b7b1f47-a191-45ad-abd9-14027b7d4e2f" />
+
+
 <flow id="traffic_jam" type="private" begin="1500" end="1899" number="60">
     <route edges="210 43[0] 43[1] 201 204a[0] 204b[0] 204[1][0] 204[1][1]"/>
 </flow>
