@@ -84,6 +84,21 @@ CORDONING happens only when we need to solve the problem into sub-problems, so t
 
 <img width="789" height="463" alt="image" src="https://github.com/user-attachments/assets/123a9151-956e-4440-bf0b-9c08916293e7" />
 
+**PARATIRISEIS APO DIAFORA PEIRAMATA STO SUMO(BOLOGNA)** 
+We can see that the simulation is running just right, infact for 1 real time hour (8.00-9.00) of our dataset vscode is running the simulation for 3600sec(60minsx60secs) which is absolutely correct. 
+
+<img width="683" height="348" alt="image" src="https://github.com/user-attachments/assets/722b2f48-8d2e-4fd2-8c7b-977599b1afd5" />
+
+Now that this is fine, i tried to implement an E2 detector, so we can detect how much saturation* is at a certain road lane. After implenting it we saw some Plhrothta(saturation%). Using this block of code we successfully added more cars into the timesteps (1500-1899) until our new addition the **AMBULANCE** got added. 
+<flow id="traffic_jam" type="private" begin="1500" end="1899" number="60">
+    <route edges="210 43[0] 43[1] 201 204a[0] 204b[0] 204[1][0] 204[1][1]"/>
+</flow>
+
+MY NEXT GOAL WILL BE TO MAKE THE TRAFFIC LIGHT FASTER AT THE EXACT LANE OF THE AMBULANCE SO THAT THE DELAY IS REDUCED FROM 4 sec ===> 3 sec ( 4 alerts means a duration of 4seconds for the ambulance to pass the route we set for it)
+
+<img width="722" height="137" alt="image" src="https://github.com/user-attachments/assets/a6e5c64e-fe13-40f4-a523-2b8bb3c03843" />
+
+
 
 ## WP4 protocol - INFLUXDB & Grafana Dashboard
 Graphs-Statistics of C02 Emissions and other measures.
