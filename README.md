@@ -102,6 +102,12 @@ MY NEXT GOAL WILL BE TO MAKE THE TRAFFIC LIGHT FASTER AT THE EXACT LANE OF THE A
 <img width="722" height="137" alt="image" src="https://github.com/user-attachments/assets/a6e5c64e-fe13-40f4-a523-2b8bb3c03843" />
 
 
+**DYNAMIC APPROACH** 
+
+<img width="849" height="333" alt="image" src="https://github.com/user-attachments/assets/5ebb0fb1-82b1-4529-b323-75e9ffe39acb" />
+
+
+<img width="779" height="312" alt="image" src="https://github.com/user-attachments/assets/f7eaa1cf-4021-4421-8b8d-c8b9af0dda57" />
 
 ## WP4 protocol - INFLUXDB & Grafana Dashboard
 Graphs-Statistics of C02 Emissions and other measures.
