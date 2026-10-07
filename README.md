@@ -97,7 +97,7 @@ Now that this is fine, i tried to implement an E2 detector, so we can detect how
     <route edges="210 43[0] 43[1] 201 204a[0] 204b[0] 204[1][0] 204[1][1]"/>
 </flow>
 
-MY NEXT GOAL WILL BE TO MAKE THE TRAFFIC LIGHT FASTER AT THE EXACT LANE OF THE AMBULANCE SO THAT THE DELAY IS REDUCED FROM 4 sec ===> 3 sec ( 4 alerts means a duration of 4seconds for the ambulance to pass the route we set for it)
+MY NEXT GOAL WILL BE TO MAKE THE TRAFFIC LIGHT FASTER AT THE EXACT LANE OF THE AMBULANCE SO THAT THE DELAY IS REDUCED FROM 4 sec ===> 3 sec ( 4 alerts means a duration of 4seconds for the ambulance to pass the route we set for it). TRY TO MAKE A "GREEN WAVE" so that e.g. the next 3 traffic lights phase's turns green and the ambulance can pass through without any problem. 
 
 <img width="722" height="137" alt="image" src="https://github.com/user-attachments/assets/a6e5c64e-fe13-40f4-a523-2b8bb3c03843" />
 
