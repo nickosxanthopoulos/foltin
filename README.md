@@ -109,6 +109,14 @@ MY NEXT GOAL WILL BE TO MAKE THE TRAFFIC LIGHT FASTER AT THE EXACT LANE OF THE A
 
 <img width="779" height="312" alt="image" src="https://github.com/user-attachments/assets/f7eaa1cf-4021-4421-8b8d-c8b9af0dda57" />
 
+Me to OSMWEBWIZARD.PY pairnw mia sygkekrimenh perioxh pou thelw apo opoudipote kai auto amesws tha mpei sto sumo san net.xml 
+Me to netedit tha svisw ta axrista mikra stena pou mas varenoun ypologistika
+-Επίλεξε έναν δρόμο (edge) και πειραματίσου. Πρόσθεσε μια έξτρα λωρίδα, άλλαξε το όριο ταχύτητας, ή μετέτρεψε τη δεξιά λωρίδα σε αποκλειστική λωρίδα λεωφορείων.
+Mporw na allaksw tis faseis tou kathe fanariou
+Me to randomTrips.py tha spawnarw random amaksia se random shmeia, mporw na valw asthenoforo. Για να το κάνεις πραγματικά δυναμικό, πρόσθεσε μια συνθήκη στο TraCI script (π.χ. traci.edge.setDisallowed). Pou tha svinei ena kentriko edge kai tha dw pws tha ginoun reroute ta amaksia etsi
+
+
+
 ## WP4 protocol - INFLUXDB & Grafana Dashboard
 Graphs-Statistics of C02 Emissions and other measures.
 Python starts solving and then takes the outputs that are visualized by InfluxDB and Grafana.
