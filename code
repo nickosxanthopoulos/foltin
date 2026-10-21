@@ -11,7 +11,7 @@ else:
 
 # Dynamically find the config file in the same folder as this script
 script_dir = os.path.dirname(os.path.abspath(__file__))
-config_path = os.path.join(script_dir, "ilioupoli.sumocfg")
+config_path = os.path.join(script_dir, "ilioupoli.sumocfg.cfg")
 
 # Launch SUMO me scale 0.5 gia na mhn kollane ta amaxia
 sumoBinary = "sumo-gui"
