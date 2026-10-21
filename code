@@ -29,25 +29,39 @@ while step < 6000:
     active_vehicles = traci.vehicle.getIDList()
     arrived_vehicles = traci.simulation.getArrivedIDList()
 
-    # 1. ELEGKHOS EISODOU KAI EKSODOU ASTHENOFOROU
-    # Otav to AMBULANCE_01 emfanistei ston xarth:
-    if "AMBULANCE_01" in active_vehicles and not ambulance_entered:
-        ambulance_start_time = step
-        ambulance_entered = True
-        print(f"\n==================================================")
-        print(f"[INFO] >>> TO ASTHENOFORO (AMBULANCE_01) MPHKE STO SIMULATION STO STEP {step}! <<<")
-        print(f"==================================================\n")
-
-    # Otan to AMBULANCE_01 ftasei ston proorismo tou kai vgei apo to simulation:
-    if "AMBULANCE_01" in arrived_vehicles:
-        total_time = step - ambulance_start_time
-        print(f"\n==================================================")
-        print(f"!!! TO ASTHENOFORO (AMBULANCE_01) EFTASE STON PROORISMO TOU !!!")
-        print(f"--> Synolikos Xronos Diadromhs: {total_time} deuterolepta (Step {step}).")
-        print(f"==================================================\n")
+    # 2. DYNAMIKO GREEN WAVE GIA OPOIODHPO TE FANARI MPROSTA TOU
+    if "AMBULANCE_01" in active_vehicles:
+        upcoming_tls = traci.vehicle.getNextTLS("AMBULANCE_01")
         
-        # Reset sto teleftaio fanari otan vgei to asthenoforo
-        if active_tls != "":
+        if len(upcoming_tls) > 0:
+            next_tls_info = upcoming_tls[0]
+            tls_id = next_tls_info[0]       
+            tls_index = next_tls_info[1]    
+            distance = next_tls_info[2]     
+
+            if distance < 150.0:
+                try:
+                    if active_tls != "" and active_tls != tls_id:
+                        traci.trafficlight.setProgram(active_tls, "0")
+                    
+                    active_tls = tls_id
+                    
+                    # FORCED GREEN: Διαβάζουμε την τρέχουσα κατάσταση όλων των φαναριών του κόμβου
+                    current_state = list(traci.trafficlight.getRedYellowGreenState(tls_id))
+                    
+                    # Αν η δική μας λωρίδα δεν είναι ήδη πράσινη, την κάνουμε με το ζόρι!
+                    if current_state[tls_index] not in ('G', 'g'):
+                        current_state[tls_index] = 'G'
+                        traci.trafficlight.setRedYellowGreenState(tls_id, "".join(current_state))
+                        
+                        # Τυπώνουμε στο τερματικό για να βλέπεις ότι δουλεύει!
+                        print(f"   [GREEN WAVE] Forced Prasino sto fanari {tls_id} (Apostash: {distance:.1f}m)")
+                        
+                except traci.exceptions.TraCIException:
+                    pass
+
+        # Επαναφορά όταν περάσει το φανάρι
+        elif active_tls != "":
             try:
                 traci.trafficlight.setProgram(active_tls, "0")
                 active_tls = ""
