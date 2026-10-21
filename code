@@ -15,7 +15,7 @@ config_path = os.path.join(script_dir, "ilioupoli.sumocfg.cfg")
 
 # Launch SUMO me scale 0.5 gia na mhn kollane ta amaxia
 sumoBinary = "sumo-gui"
-sumoCmd = [sumoBinary, "-c", config_path, "--scale", "0.5"]
+sumoCmd = [sumoBinary, "-c", config_path, "--scale", "0.8"]
 traci.start(sumoCmd)
 
 ambulance_start_time = -1
@@ -87,9 +87,9 @@ while step < 6000:
                                 break
                         
                         # Efarmozoume ti fash tou prasinou
-                        if best_phase != -1:
-                            traci.trafficlight.setPhase(tls_id, best_phase)
-                            traci.trafficlight.setPhaseDuration(tls_id, 100)
+                        #if best_phase != -1:
+                            #traci.trafficlight.setPhase(tls_id, best_phase)
+                            #traci.trafficlight.setPhaseDuration(tls_id, 100)
                             
                 except traci.exceptions.TraCIException:
                     pass
