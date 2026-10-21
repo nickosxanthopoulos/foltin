@@ -13,7 +13,7 @@ else:
 script_dir = os.path.dirname(os.path.abspath(__file__))
 config_path = os.path.join(script_dir, "ilioupoli.sumocfg.cfg")
 
-# Launch SUMO me scale 0.5 gia na mhn kollane ta amaxia
+# Launch SUMO me scale 0.8
 sumoBinary = "sumo-gui"
 sumoCmd = [sumoBinary, "-c", config_path, "--scale", "0.8"]
 traci.start(sumoCmd)
@@ -29,10 +29,35 @@ while step < 6000:
     active_vehicles = traci.vehicle.getIDList()
     arrived_vehicles = traci.simulation.getArrivedIDList()
 
-    # 2. DYNAMIKO GREEN WAVE GIA OPOIODHPO TE FANARI MPROSTA TOU
+    # 1. ELEGKHOS EISODOU KAI EKSODOU ASTHENOFOROU
+    if "AMBULANCE_01" in active_vehicles and not ambulance_entered:
+        ambulance_start_time = step
+        ambulance_entered = True
+        print(f"\n==================================================")
+        print(f"[INFO] >>> TO ASTHENOFORO (AMBULANCE_01) MPHKE STO SIMULATION STO STEP {step}! <<<")
+        print(f"==================================================\n")
+
+    if "AMBULANCE_01" in arrived_vehicles:
+        total_time = step - ambulance_start_time
+        print(f"\n==================================================")
+        print(f"!!! TO ASTHENOFORO (AMBULANCE_01) EFTASE STON PROORISMO TOU !!!")
+        print(f"--> Synolikos Xronos Diadromhs: {total_time} deuterolepta (Step {step}).")
+        print(f"==================================================\n")
+        
+        if active_tls != "":
+            try:
+                traci.trafficlight.setProgram(active_tls, "0")
+                active_tls = ""
+            except traci.exceptions.TraCIException:
+                pass
+
+    # 2. DYNAMIKO GREEN WAVE
     if "AMBULANCE_01" in active_vehicles:
         upcoming_tls = traci.vehicle.getNextTLS("AMBULANCE_01")
         
+        if step % 50 == 0:
+            print(f"[DEBUG Step {step}] Epomena fanaria asthenoforou: {upcoming_tls}")
+            
         if len(upcoming_tls) > 0:
             next_tls_info = upcoming_tls[0]
             tls_id = next_tls_info[0]       
@@ -46,77 +71,32 @@ while step < 6000:
                     
                     active_tls = tls_id
                     
-                    # FORCED GREEN: Διαβάζουμε την τρέχουσα κατάσταση όλων των φαναριών του κόμβου
+                    # ΑΥΤΗ ΕΙΝΑΙ Η ΓΡΑΜΜΗ ΠΟΥ ΕΛΕΙΠΕ:
                     current_state = list(traci.trafficlight.getRedYellowGreenState(tls_id))
                     
-                    # Αν η δική μας λωρίδα δεν είναι ήδη πράσινη, την κάνουμε με το ζόρι!
                     if current_state[tls_index] not in ('G', 'g'):
-                        current_state[tls_index] = 'G'
-                        traci.trafficlight.setRedYellowGreenState(tls_id, "".join(current_state))
+                        pass
+                        # 1. Kanoume OLA ta fanaria ths diastavrwshs kokkina ('r')
+                        new_state = ['r'] * len(current_state)
                         
-                        # Τυπώνουμε στο τερματικό για να βλέπεις ότι δουλεύει!
+                        # 2. Dinoume proteraiothta (Prasino) MONO sth lwrida tou asthenoforou
+                        new_state[tls_index] = 'G'
+                        
+                        # 3. To efarmozoume
+                        traci.trafficlight.setRedYellowGreenState(tls_id, "".join(new_state))
                         print(f"   [GREEN WAVE] Forced Prasino sto fanari {tls_id} (Apostash: {distance:.1f}m)")
                         
                 except traci.exceptions.TraCIException:
                     pass
 
-        # Επαναφορά όταν περάσει το φανάρι
-        elif active_tls != "":
-            try:
-                traci.trafficlight.setProgram(active_tls, "0")
-                active_tls = ""
-            except traci.exceptions.TraCIException:
-                pass
+    elif active_tls != "":
+        try:
+            traci.trafficlight.setProgram(active_tls, "0")
+            active_tls = ""
+        except traci.exceptions.TraCIException:
+            pass
 
-    # 2. DYNAMIKO GREEN WAVE GIA OPOIODHPO TE FANARI MPROSTA TOU
-    if "AMBULANCE_01" in active_vehicles:
-        # H traci.vehicle.getNextTLS vriskei OLA ta fanaria sth diadromh tou asthenoforou on-the-fly
-        upcoming_tls = traci.vehicle.getNextTLS("AMBULANCE_01")
-        
-        if len(upcoming_tls) > 0:
-            next_tls_info = upcoming_tls[0]
-            tls_id = next_tls_info[0]       # To ID tou fanariou
-            tls_index = next_tls_info[1]    # H lwrida tou asthenoforou στο fanari
-            distance = next_tls_info[2]     # Apostash apo to fanari
-
-            # Otan to asthenoforo ftasei sta 150 metra apo to fanari:
-            if distance < 150.0:
-                try:
-                    # An to asthenoforo alakse fanari, epanadheroyme to prohgoumeno sto kanoniko programma
-                    if active_tls != "" and active_tls != tls_id:
-                        traci.trafficlight.setProgram(active_tls, "0")
-                    
-                    active_tls = tls_id
-                    
-                    # Diavazoume tis fashs tou συγκεκριμενου fanariou
-                    logics = traci.trafficlight.getCompleteRedYellowGreenDefinition(tls_id)
-                    if len(logics) > 0:
-                        current_logic = logics[0]
-                        best_phase = -1
-                        
-                        # Vriskoume th fash pou dinei Prasino ('G' h 'g') sth lwrida tou asthenoforou
-                        for i, phase in enumerate(current_logic.phases):
-                            if len(phase.state) > tls_index and phase.state[tls_index] in ('G', 'g'):
-                                best_phase = i
-                                break
-                        
-                        # Efarmozoume ti fash tou prasinou
-                        #if best_phase != -1:
-                            #traci.trafficlight.setPhase(tls_id, best_phase)
-                            #traci.trafficlight.setPhaseDuration(tls_id, 100)
-                            
-                except traci.exceptions.TraCIException:
-                    pass
-
-        # An perase kai to teleftaio fanari mprosta tou, epanadheroyme to dromologio
-        elif active_tls != "":
-            try:
-                traci.trafficlight.setProgram(active_tls, "0")
-                active_tls = ""
-            except traci.exceptions.TraCIException:
-                pass
-
-    # 3. Statistika katastashs kykloforias ana 100 vhmata
+    # 3. Statistika katastashs kykloforias
     if step % 100 == 0:
         stopped_cars = 0
         total_delay = 0
