@@ -120,7 +120,9 @@ Me to netedit tha svisw ta axrista mikra stena pou mas varenoun ypologistika
 Mporw na allaksw tis faseis tou kathe fanariou.
 Me to randomTrips.py tha spawnarw random amaksia se random shmeia, mporw na valw asthenoforo. Για να το κάνεις πραγματικά δυναμικό, πρόσθεσε μια συνθήκη στο TraCI script (π.χ. traci.edge.setDisallowed). Pou tha svinei ena kentriko edge kai tha dw pws tha ginoun reroute ta amaksia etsi
 
+Paratiroume oti xwris green wave to asthenoforo ekana 519 deutera enw me green wave  ekana 690 deutera. Auto paratiroume oti einai logw tou "cluster". Όταν ο κώδικάς μας ανάγκασε ακαριαία όλα τα φανάρια να γίνουν κόκκινα ('r'), "πάγωσε" αμέσως τα αυτοκίνητα που εκείνη τη στιγμή διέσχιζαν τη διασταύρωση. Αυτά τα εγκλωβισμένα οχήματα έμειναν ακίνητα στη μέση του κόμβου, κλείνοντας εντελώς τον δρόμο του ασθενοφόρου!
 
+"Δοκιμάσαμε την ακαριαία επιβολή πράσινου στο ασθενοφόρο και κόκκινου στους υπόλοιπους. Τα αποτελέσματα έδειξαν αύξηση του χρόνου από 519s σε 690s. Αυτό αποδεικνύει πρακτικά ότι στους μεγάλους κόμβους (clusters), ένα δυναμικό σύστημα Green Wave απαιτεί φάση εκκένωσης (clearance time/πορτοκαλί) πριν δώσει πράσινο, ώστε να μην παγιδεύονται οχήματα μέσα στο 'κουτί' της διασταύρωσης."
 
 ## WP4 protocol - INFLUXDB & Grafana Dashboard
 Graphs-Statistics of C02 Emissions and other measures.
