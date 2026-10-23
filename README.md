@@ -206,7 +206,7 @@ What happens in other roads that are connected, the current crossroad we are tak
 **HOW TO MAKE SUMO WORK**
 
 <img width="796" height="227" alt="image" src="https://github.com/user-attachments/assets/864ab694-3b27-47ac-bd37-e7cff7357e68" />
-
+<img width="891" height="375" alt="image" src="https://github.com/user-attachments/assets/a45f610c-5d07-43db-8f55-68a76e5fb1d2" />
 
 
 
@@ -221,5 +221,5 @@ Apolyth Statherothta twn Xronwn: To asthenoforo eftase ston proorismo tou sto st
 
 Ygeia tou Diktyou (No Gridlocks): Paroti o algorithmos evaze mpros to Green Wave kai forsarize prasina fanaria, vlepoume apo ta stats sou oti to ypoloipo diktyo ths Hlioupolhs synexise na leitourgei fysiologika, afou to simulation synexise mexri to telos xwris na pagideutei kanena amaxi.   
 
-<img width="891" height="375" alt="image" src="https://github.com/user-attachments/assets/a45f610c-5d07-43db-8f55-68a76e5fb1d2" />
+
 
