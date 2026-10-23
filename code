@@ -1,6 +1,8 @@
 import os
 import sys
 import traci
+import math
+
 
 # Ensure SUMO is in your system path
 if 'SUMO_HOME' in os.environ:
@@ -75,32 +77,46 @@ while step < 6000:
                     current_state = list(traci.trafficlight.getRedYellowGreenState(tls_id))
                     
                     if current_state[tls_index] not in ('G', 'g'):
-                        pass
-                        # 1. Kanoume OLA ta fanaria ths diastavrwshs kokkina ('r')
-                        new_state = ['r'] * len(current_state)
-                        
-                        # 2. Dinoume proteraiothta (Prasino) MONO sth lwrida tou asthenoforou
+                        # 1. Κρατάμε τα υπόλοιπα φανάρια ως έχουν (για να μην παγιδευτούν τα οχήματα που ήδη διασχίζουν τον κόμβο)
+                        new_state = current_state.copy()
+            
+                        # 2. Κάνουμε ΠΡΑΣΙΝΟ ΜΟΝΟ τη λωρίδα του ασθενοφόρου
                         new_state[tls_index] = 'G'
-                        
-                        # 3. To efarmozoume
-                        traci.trafficlight.setRedYellowGreenState(tls_id, "".join(new_state))
-                        print(f"   [GREEN WAVE] Forced Prasino sto fanari {tls_id} (Apostash: {distance:.1f}m)")
+            
+                        # 3. Το εφαρμόζουμε
+                        new_state_str = "".join(new_state)
+                        traci.trafficlight.setRedYellowGreenState(tls_id, new_state_str)
+                        print(f"  [GREEN WAVE] Forced Prasino sto fanari {tls_id} (Apostash: {distance:.1f}m)")
                         
                 except traci.exceptions.TraCIException:
                     pass
 
     elif active_tls != "":
         try:
-            traci.trafficlight.setProgram(active_tls, "0")
+          #  traci.trafficlight.setProgram(active_tls, "0")
             active_tls = ""
         except traci.exceptions.TraCIException:
             pass
 
+        # === ΝΕΟΣ ΚΩΔΙΚΑΣ: LIVE ΑΛΛΑΓΗ ΠΡΟΟΡΙΣΜΟΥ ===
+        # Έστω ότι το ασθενοφόρο μπαίνει στο step 1900. 
+        # Στο step 2000 του στέλνουμε "νέα κλήση" για άλλο δρόμο.
+        if step == 2000:
+            if "AMBULANCE_01" in active_vehicles:
+                try:
+                    # Βάλε το πραγματικό ID ενός δρόμου από το Netedit
+                    neon_edge_id = "66113514#0" 
+                    traci.vehicle.changeTarget("AMBULANCE_01", neon_edge_id)
+                    print(f"\n[LIVE GPS] Epeigousa klhsh! To asthenoforo allakse poreia pros: {neon_edge_id}\n")
+                except traci.exceptions.TraCIException:
+                    print("[LIVE GPS] Sfalma: O dromos den vrethhke.")
+        # ============================================
+    # 3. Statistika katastashs kykloforias
     # 3. Statistika katastashs kykloforias
     if step % 100 == 0:
         stopped_cars = 0
         total_delay = 0
-
+        
         for veh_id in active_vehicles:
             try:
                 wait_time = traci.vehicle.getWaitingTime(veh_id)
@@ -109,10 +125,9 @@ while step < 6000:
                     total_delay += wait_time
             except traci.exceptions.TraCIException:
                 pass
-
+                
         print(f"Step {step}: {len(active_vehicles)} total cars. "
               f"{stopped_cars} stopped (Total delay: {total_delay}s).")
-
     step += 1
 
 traci.close()
