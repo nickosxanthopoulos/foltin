@@ -207,5 +207,19 @@ What happens in other roads that are connected, the current crossroad we are tak
 
 <img width="796" height="227" alt="image" src="https://github.com/user-attachments/assets/864ab694-3b27-47ac-bd37-e7cff7357e68" />
 
+
+
+
+##conclusions 
+
+
+Realismos SUMO (Microscopic Traffic): Eixame orisei sto XML thn anaxwrhsh tou asthenoforou sto step 1900, alla auto mpike pragmatika sthn prosomoiwsh sto step 1913. Auto apodeiknyei poso realistika douleuei to SUMO: To systhma den petakse to amaxi magika panw se alla, alla perimene 13 deuterolepta wste na dhmiourghthei to aparaithto asfales keno (car-following gap) sthn asfalto gia na mpei sthn kinhsh.   
+
+Epityxhs Leitourgia Green Wave (V2I): Sto terminal katagrafhkan synexomenes energies paremvashs ([GREEN WAVE] Forced Prasino). Vlepoume oti o Python kwdikas energei thlepathtika se polles diaforetikes apostaseis (p.x. otan entopizei to fanari sta 149.5m, 143.6m, 128.5m, h akoma kai sta 112.1m). Auto shmainei oti to systhma proteraiothtas (Vehicle-to-Infrastructure) parakolouthei to asthenoforo real-time kai tou anoigei ton dromo xwris na to anagkasei na frenaerei sto kokkino.  
+
+Apolyth Statherothta twn Xronwn: To asthenoforo eftase ston proorismo tou sto step 2253, dinontas mas enan epishmo teliko xrono diadromhs 340 deuteroleptwn. To dynamiko GPS tou (<trip> rerouting) ton apemakryne apo ton kykloforiako forto twn 1000 oxhmatwn.   
+
+Ygeia tou Diktyou (No Gridlocks): Paroti o algorithmos evaze mpros to Green Wave kai forsarize prasina fanaria, vlepoume apo ta stats sou oti to ypoloipo diktyo ths Hlioupolhs synexise na leitourgei fysiologika, afou to simulation synexise mexri to telos xwris na pagideutei kanena amaxi.   
+
 <img width="891" height="375" alt="image" src="https://github.com/user-attachments/assets/a45f610c-5d07-43db-8f55-68a76e5fb1d2" />
 
