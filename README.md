@@ -124,6 +124,15 @@ Paratiroume oti xwris green wave to asthenoforo ekana 519 deutera enw me green w
 
 "Δοκιμάσαμε την ακαριαία επιβολή πράσινου στο ασθενοφόρο και κόκκινου στους υπόλοιπους. Τα αποτελέσματα έδειξαν αύξηση του χρόνου από 519s σε 690s. Αυτό αποδεικνύει πρακτικά ότι στους μεγάλους κόμβους (clusters), ένα δυναμικό σύστημα Green Wave απαιτεί φάση εκκένωσης (clearance time/πορτοκαλί) πριν δώσει πράσινο, ώστε να μην παγιδεύονται οχήματα μέσα στο 'κουτί' της διασταύρωσης."
 
+##A/B testing: Senario A:
+-No Green Wave, 65/35 split, no rerouting for the ambulance
+
+Senario B:
+-Green wave, Dynamic GPS for ambulance
+
+GOal: compare both scenarios and make a conclusion for the time "won" . THis will then be used in the mitigation scenario
+
+
 ## WP4 protocol - INFLUXDB & Grafana Dashboard
 Graphs-Statistics of C02 Emissions and other measures.
 Python starts solving and then takes the outputs that are visualized by InfluxDB and Grafana.
