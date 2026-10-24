@@ -132,6 +132,9 @@ Senario B:
 
 GOal: compare both scenarios and make a conclusion for the time "won" . THis will then be used in the mitigation scenario
 
+<img width="591" height="321" alt="image" src="https://github.com/user-attachments/assets/141c9c1c-b7ad-4ebe-9e7d-e72f288ae94f" />
+
+
 
 ## WP4 protocol - INFLUXDB & Grafana Dashboard
 Graphs-Statistics of C02 Emissions and other measures.
