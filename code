@@ -1,4 +1,3 @@
-cd "Ilioupoli simulation"
 import os
 import sys
 import traci
