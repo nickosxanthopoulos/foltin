@@ -135,7 +135,7 @@ GOal: compare both scenarios and make a conclusion for the time "won" . THis wil
 <img width="591" height="321" alt="image" src="https://github.com/user-attachments/assets/141c9c1c-b7ad-4ebe-9e7d-e72f288ae94f" />
 
 
-**Monte Carlo Scripting: You will wrap your entire SUMO execution in an outer Python for loop (e.g., for i in range(100):). This loop will randomly generate the scale factor, accident location, and disruption duration for each run, saving the output to a CSV.
+**Monte Carlo Scripting: You will wrap your entire SUMO execution in an outer Python for loop (e.g., for i in range(100):). This loop will randomly generate the scale factor, accident location, and disruption duration for each run, saving the output to a CSV.**
 
 
 ## WP4 protocol - INFLUXDB & Grafana Dashboard
