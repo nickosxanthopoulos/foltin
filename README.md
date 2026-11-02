@@ -135,6 +135,8 @@ GOal: compare both scenarios and make a conclusion for the time "won" . THis wil
 <img width="591" height="321" alt="image" src="https://github.com/user-attachments/assets/141c9c1c-b7ad-4ebe-9e7d-e72f288ae94f" />
 
 
+**Monte Carlo Scripting: You will wrap your entire SUMO execution in an outer Python for loop (e.g., for i in range(100):). This loop will randomly generate the scale factor, accident location, and disruption duration for each run, saving the output to a CSV.
+
 
 ## WP4 protocol - INFLUXDB & Grafana Dashboard
 Graphs-Statistics of C02 Emissions and other measures.
@@ -144,8 +146,6 @@ When SUMO and InfluxDB have to be connected Generative AI will take data from th
 Since you are already thinking in terms of multi-sensor data fusion, this would look fantastic on your Grafana dashboard for Work Package 4. You could have a live chart plotting "Sensor A Arrivals" vs. "Sensor B Departures," where a massive divergence between the two lines visually proves to your professor exactly when and where the accident happened.
 
 
-
-**Monte Carlo Scripting: You will wrap your entire SUMO execution in an outer Python for loop (e.g., for i in range(100):). This loop will randomly generate the scale factor, accident location, and disruption duration for each run, saving the output to a CSV.
 
 
 
