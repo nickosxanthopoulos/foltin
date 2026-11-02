@@ -144,6 +144,12 @@ When SUMO and InfluxDB have to be connected Generative AI will take data from th
 Since you are already thinking in terms of multi-sensor data fusion, this would look fantastic on your Grafana dashboard for Work Package 4. You could have a live chart plotting "Sensor A Arrivals" vs. "Sensor B Departures," where a massive divergence between the two lines visually proves to your professor exactly when and where the accident happened.
 
 
+
+**Monte Carlo Scripting: You will wrap your entire SUMO execution in an outer Python for loop (e.g., for i in range(100):). This loop will randomly generate the scale factor, accident location, and disruption duration for each run, saving the output to a CSV.
+
+
+
+
 ## WP5 protocol - Socioeconomic calculations & GIS Analysis
 
 Ready-Made Mitigation Strategies (WP6)Applying stochastic signal optimization to reduce the socio-economic costs of your disrupted intersection.
