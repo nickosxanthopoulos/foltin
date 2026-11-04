@@ -140,7 +140,7 @@ GOal: compare both scenarios and make a conclusion for the time "won" . THis wil
 
 <img width="750" height="400" alt="image" src="https://github.com/user-attachments/assets/adb37796-aff7-4688-9300-e8f0b2204fdf" />
 
-
+Auto to kanoume gia na epilegetai gia to asthenoforo PANTA o taxyteros dromos vazontas amaksia "scouts" pou trexoun 100-200 step nwritera apo auto kai scoutaroun tous dromous. To ena scout paei ston kentriko dromo, to allo stous dipla dromous kai mas deixnei stin pragmatikothta poios dromos einai protimoteros!
 
 
 ## WP4 protocol - INFLUXDB & Grafana Dashboard
