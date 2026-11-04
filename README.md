@@ -143,6 +143,12 @@ GOal: compare both scenarios and make a conclusion for the time "won" . THis wil
 Auto to kanoume gia na epilegetai gia to asthenoforo PANTA o taxyteros dromos vazontas amaksia "scouts" pou trexoun 100-200 step nwritera apo auto kai scoutaroun tous dromous. To ena scout paei ston kentriko dromo, to allo stous dipla dromous kai mas deixnei stin pragmatikothta poios dromos einai protimoteros!
 
 
+Prepei oposdipote na ftiaksw ta 2 intersection sto netedit <img width="596" height="728" alt="image" src="https://github.com/user-attachments/assets/684a9cf9-65c1-48ad-a335-ed1fe4420d25" /><img width="411" height="433" alt="image" src="https://github.com/user-attachments/assets/87249f19-673e-441e-96b1-5f2c3e626ce5" />
+
+
+
+
+
 ## WP4 protocol - INFLUXDB & Grafana Dashboard
 Graphs-Statistics of C02 Emissions and other measures.
 Python starts solving and then takes the outputs that are visualized by InfluxDB and Grafana.
