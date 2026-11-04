@@ -6,6 +6,7 @@ import math
 
 # Ensure SUMO is in your system path
 if 'SUMO_HOME' in os.environ:
+
     tools = os.path.join(os.environ['SUMO_HOME'], 'tools')
     sys.path.append(tools)
 else:
@@ -15,13 +16,27 @@ else:
 script_dir = os.path.dirname(os.path.abspath(__file__))
 config_path = os.path.join(script_dir, "ilioupoli.sumocfg.cfg")
 
-# Launch SUMO me scale 0.8
+# ==========================================
+# ΕΠΙΛΟΓΗ ΣΕΝΑΡΙΟΥ (S0, S1, S2, ή S3)
+# ==========================================
+CURRENT_SCENARIO = "S1"  # Άλλαξε αυτό σε S1, S2 ή S3
+
 sumoBinary = "sumo-gui"
-sumoCmd = [sumoBinary, "-c", config_path, "--scale", "0.8"]
+sumoCmd = [sumoBinary, "-c", config_path]
+
+# --- Εφαρμογή S1: Αύξηση κίνησης 30% ---
+if CURRENT_SCENARIO == "S1":
+    sumoCmd.extend(["--scale", "0.8", "--time-to-teleport", "-1"])
+    print("[SCENARIO] S1 Active: Kinisi ayksimeni kata 30% (Teleports Disabled)")
+else:
+    print(f"[SCENARIO] {CURRENT_SCENARIO} Active: Normal traffic")
+ 
+
 traci.start(sumoCmd)
 
 ambulance_start_time = -1
 ambulance_entered = False
+bus_entered = False
 step = 0
 active_tls = ""
 
@@ -30,6 +45,24 @@ while step < 6000:
 
     active_vehicles = traci.vehicle.getIDList()
     arrived_vehicles = traci.simulation.getArrivedIDList()
+    if CURRENT_SCENARIO == "S2" and step == 1000:
+        target_lane = "ID_LWRIDAS_0"  # ΠΡΕΠΕΙ ΝΑ ΤΟ ΑΛΛΑΞΕΙΣ ΜΕ ΕΝΑ ΠΡΑΓΜΑΤΙΚΟ ID ΑΠΟ ΤΟ NETEDIT
+        try:
+            traci.lane.setDisallowed(target_lane, ["all"])
+            print(f"[SCENARIO S2] ERGA: H lwrida {target_lane} molis ekleise!")
+        except traci.exceptions.TraCIException:
+            pass
+
+    # --- Εφαρμογή S3: Τροχαίο Ατύχημα (Accident) ---
+    if CURRENT_SCENARIO == "S3" and step == 1500:
+        if len(active_vehicles) > 0:
+            crashed_car = active_vehicles[0]
+            try:
+                traci.vehicle.setSpeed(crashed_car, 0)
+                traci.vehicle.setColor(crashed_car, (0, 0, 0)) # Κάνει το αμάξι μαύρο
+                print(f"[SCENARIO S3] ATYXHMA: To oxhma {crashed_car} trakara kai stamatise!")
+            except traci.exceptions.TraCIException:
+                pass
 
     # 1. ELEGKHOS EISODOU KAI EKSODOU ASTHENOFOROU
     if "AMBULANCE_01" in active_vehicles and not ambulance_entered:
@@ -45,6 +78,14 @@ while step < 6000:
         print(f"!!! TO ASTHENOFORO (AMBULANCE_01) EFTASE STON PROORISMO TOU !!!")
         print(f"--> Synolikos Xronos Diadromhs: {total_time} deuterolepta (Step {step}).")
         print(f"==================================================\n")
+
+    # === TRACKER ΓΙΑ ΤΟ ΛΕΩΦΟΡΕΙΟ ===
+    if "city_bus.0" in active_vehicles and not bus_entered:
+        bus_entered = True
+        print(f"[INFO] To lewforeio (city_bus.0) mphke sto step {step}")
+        
+    if "city_bus.0" in arrived_vehicles:
+        print(f"[INFO] To lewforeio eftase ston proorismo tou sto step {step}")    
         
         if active_tls != "":
             try:
@@ -98,18 +139,6 @@ while step < 6000:
         except traci.exceptions.TraCIException:
             pass
 
-        # === ΝΕΟΣ ΚΩΔΙΚΑΣ: LIVE ΑΛΛΑΓΗ ΠΡΟΟΡΙΣΜΟΥ ===
-        # Έστω ότι το ασθενοφόρο μπαίνει στο step 1900. 
-        # Στο step 2000 του στέλνουμε "νέα κλήση" για άλλο δρόμο.
-        if step == 2000:
-            if "AMBULANCE_01" in active_vehicles:
-                try:
-                    # Βάλε το πραγματικό ID ενός δρόμου από το Netedit
-                    neon_edge_id = "66113514#0" 
-                    traci.vehicle.changeTarget("AMBULANCE_01", neon_edge_id)
-                    print(f"\n[LIVE GPS] Epeigousa klhsh! To asthenoforo allakse poreia pros: {neon_edge_id}\n")
-                except traci.exceptions.TraCIException:
-                    print("[LIVE GPS] Sfalma: O dromos den vrethhke.")
         # ============================================
     # 3. Statistika katastashs kykloforias
     # 3. Statistika katastashs kykloforias
