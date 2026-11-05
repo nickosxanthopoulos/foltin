@@ -25,7 +25,7 @@ sumoBinary = "sumo-gui"
 sumoCmd = [sumoBinary, "-c", config_path]
 
 # --- Εφαρμογή S1: Αύξηση κίνησης 30% ---
-if CURRENT_SCENARIO == "S1":
+if CURRENT_SCENARIO == "S2":
     sumoCmd.extend(["--scale", "1", "--time-to-teleport", "-1"])
     print("[SCENARIO] S1 Active: Kinisi ayksimeni kata 30% apo to Baseline (Teleports Disabled)")
 elif CURRENT_SCENARIO == "S2":
@@ -51,28 +51,34 @@ obstacle_created = False
 while step < 6000:
     traci.simulationStep()
     
-    # ... (ο κώδικας που έχεις για active/arrived vehicles) ...
-
+    active_vehicles = traci.vehicle.getIDList()
+    arrived_vehicles = traci.simulation.getArrivedIDList()
     # Βάζουμε >= 1000 για να περιμένει μέχρι να εμφανιστεί το ΠΡΩΤΟ διαθέσιμο αμάξι
     if CURRENT_SCENARIO == "S2" and step >= 1000 and not obstacle_created:
-            cars_in_lane = traci.lane.getLastStepVehicleIDs("436872460_0")
+            # Ψάχνουμε σε ΟΛΟ ΤΟΝ ΔΡΟΜΟ (edge) και όχι μόνο στη λωρίδα
+            cars_on_edge = traci.edge.getLastStepVehicleIDs("436872455")
             
-            if len(cars_in_lane) > 0:
-                unlucky_car = cars_in_lane[0]
+            if len(cars_on_edge) > 0:
+                unlucky_car = cars_on_edge[0]
                 
                 try:
+                    # 1. Αναγκάζουμε το αμάξι να πάει στη ΔΕΞΙΑ λωρίδα (index 0) άμεσα!
+                    traci.vehicle.changeLane(unlucky_car, 0, 0)
+                    
+                    # 2. Του κλείνουμε το AI για να μην κάνει προσπέραση και του μηδενίζουμε την ταχύτητα
                     traci.vehicle.setSpeedMode(unlucky_car, 0)
                     traci.vehicle.setSpeed(unlucky_car, 0.0)
                     
+                    # 3. Αλάρμ και χρώμα
                     traci.vehicle.setColor(unlucky_car, (255, 0, 0, 255))
-                    traci.vehicle.setSignals(unlucky_car, 3) 
+                    traci.vehicle.setSignals(unlucky_car, 3)
                     
-                    traci.lane.setDisallowed("436872460_0", ["all"])
+                    # ΠΡΟΣΟΧΗ: Δεν βάζουμε πουθενά την εντολή setDisallowed. Η λωρίδα μένει ανοιχτή!
                     
-                    print(f"[SCENARIO S2] ΕΠΙΤΥΧΙΑ: Το αμάξι {unlucky_car} τράκαρε στο step {step}!")
+                    print(f"[SCENARIO S2] ΕΠΙΤΥΧΙΑ: Το αμάξι {unlucky_car} τράκαρε στη δεξιά λωρίδα στο step {step}!")
                     obstacle_created = True
-                except: #<--- ΠΡΟΣΟΧΗ ΣΤΗ ΣΤΟΙΧΙΣΗ ΕΔΩ! 
-                    pass # <--- Πρέπει να είναι στην ίδια ευθεία με το 'try:'
+                except:
+                    pass
 
     # --- Εφαρμογή S3: Τροχαίο Ατύχημα (Accident) ---
     if CURRENT_SCENARIO == "S3" and step == 1500:
