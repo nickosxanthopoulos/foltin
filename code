@@ -19,15 +19,20 @@ config_path = os.path.join(script_dir, "ilioupoli.sumocfg.cfg")
 # ==========================================
 # ΕΠΙΛΟΓΗ ΣΕΝΑΡΙΟΥ (S0, S1, S2, ή S3)
 # ==========================================
-CURRENT_SCENARIO = "S1"  # Άλλαξε αυτό σε S1, S2 ή S3
+CURRENT_SCENARIO = "S2"  # Άλλαξε αυτό σε S1, S2 ή S3
 
 sumoBinary = "sumo-gui"
 sumoCmd = [sumoBinary, "-c", config_path]
 
 # --- Εφαρμογή S1: Αύξηση κίνησης 30% ---
 if CURRENT_SCENARIO == "S1":
-    sumoCmd.extend(["--scale", "0.8", "--time-to-teleport", "-1"])
-    print("[SCENARIO] S1 Active: Kinisi ayksimeni kata 30% (Teleports Disabled)")
+    sumoCmd.extend(["--scale", "1", "--time-to-teleport", "-1"])
+    print("[SCENARIO] S1 Active: Kinisi ayksimeni kata 30% apo to Baseline (Teleports Disabled)")
+elif CURRENT_SCENARIO == "S2":
+    sumoCmd.extend(["--time-to-teleport", "-1"])
+elif CURRENT_SCENARIO == "S0":
+    sumoCmd.extend(["--scale", "0.7", "--time-to-teleport", "-1"])
+    print("[SCENARIO] S0 Active: Baseline off-peak traffic 70%")
 else:
     print(f"[SCENARIO] {CURRENT_SCENARIO} Active: Normal traffic")
  
@@ -40,18 +45,34 @@ bus_entered = False
 step = 0
 active_tls = ""
 
+
+obstacle_created = False  
+
 while step < 6000:
     traci.simulationStep()
+    
+    # ... (ο κώδικας που έχεις για active/arrived vehicles) ...
 
-    active_vehicles = traci.vehicle.getIDList()
-    arrived_vehicles = traci.simulation.getArrivedIDList()
-    if CURRENT_SCENARIO == "S2" and step == 1000:
-        target_lane = "ID_LWRIDAS_0"  # ΠΡΕΠΕΙ ΝΑ ΤΟ ΑΛΛΑΞΕΙΣ ΜΕ ΕΝΑ ΠΡΑΓΜΑΤΙΚΟ ID ΑΠΟ ΤΟ NETEDIT
-        try:
-            traci.lane.setDisallowed(target_lane, ["all"])
-            print(f"[SCENARIO S2] ERGA: H lwrida {target_lane} molis ekleise!")
-        except traci.exceptions.TraCIException:
-            pass
+    # Βάζουμε >= 1000 για να περιμένει μέχρι να εμφανιστεί το ΠΡΩΤΟ διαθέσιμο αμάξι
+    if CURRENT_SCENARIO == "S2" and step >= 1000 and not obstacle_created:
+            cars_in_lane = traci.lane.getLastStepVehicleIDs("436872460_0")
+            
+            if len(cars_in_lane) > 0:
+                unlucky_car = cars_in_lane[0]
+                
+                try:
+                    traci.vehicle.setSpeedMode(unlucky_car, 0)
+                    traci.vehicle.setSpeed(unlucky_car, 0.0)
+                    
+                    traci.vehicle.setColor(unlucky_car, (255, 0, 0, 255))
+                    traci.vehicle.setSignals(unlucky_car, 3) 
+                    
+                    traci.lane.setDisallowed("436872460_0", ["all"])
+                    
+                    print(f"[SCENARIO S2] ΕΠΙΤΥΧΙΑ: Το αμάξι {unlucky_car} τράκαρε στο step {step}!")
+                    obstacle_created = True
+                except: #<--- ΠΡΟΣΟΧΗ ΣΤΗ ΣΤΟΙΧΙΣΗ ΕΔΩ! 
+                    pass # <--- Πρέπει να είναι στην ίδια ευθεία με το 'try:'
 
     # --- Εφαρμογή S3: Τροχαίο Ατύχημα (Accident) ---
     if CURRENT_SCENARIO == "S3" and step == 1500:
@@ -85,7 +106,9 @@ while step < 6000:
         print(f"[INFO] To lewforeio (city_bus.0) mphke sto step {step}")
         
     if "city_bus.0" in arrived_vehicles:
-        print(f"[INFO] To lewforeio eftase ston proorismo tou sto step {step}")    
+        print(f"\n==================================================")
+        print(f"[INFO] To lewforeio eftase ston proorismo tou sto step {step}")   
+        print(f"\n==================================================") 
         
         if active_tls != "":
             try:
