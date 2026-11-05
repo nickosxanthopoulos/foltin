@@ -146,6 +146,10 @@ Auto to kanoume gia na epilegetai gia to asthenoforo PANTA o taxyteros dromos va
 Prepei oposdipote na ftiaksw ta 2 intersection sto netedit <img width="596" height="728" alt="image" src="https://github.com/user-attachments/assets/684a9cf9-65c1-48ad-a335-ed1fe4420d25" /><img width="411" height="433" alt="image" src="https://github.com/user-attachments/assets/87249f19-673e-441e-96b1-5f2c3e626ce5" />
 
 
+**Eftiaksa ta interstection, tha prepei na dw pws ftiaxnw ton dromo pou xalasa**
+
+
+
 
 
 
@@ -159,7 +163,7 @@ Since you are already thinking in terms of multi-sensor data fusion, this would 
 
 
 
-
+Prepei na dw 
 
 
 ## WP5 protocol - Socioeconomic calculations & GIS Analysis
