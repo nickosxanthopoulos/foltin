@@ -19,22 +19,27 @@ config_path = os.path.join(script_dir, "ilioupoli.sumocfg.cfg")
 # ==========================================
 # ΕΠΙΛΟΓΗ ΣΕΝΑΡΙΟΥ (S0, S1, S2, ή S3)
 # ==========================================
-CURRENT_SCENARIO = "S2"  # Άλλαξε αυτό σε S1, S2 ή S3
+CURRENT_SCENARIO = "S3"  # Άλλαξε αυτό σε S1, S2 ή S3
 
 sumoBinary = "sumo-gui"
 sumoCmd = [sumoBinary, "-c", config_path]
 
 # --- Εφαρμογή S1: Αύξηση κίνησης 30% ---
-if CURRENT_SCENARIO == "S2":
+if CURRENT_SCENARIO == "S1":
     sumoCmd.extend(["--scale", "1", "--time-to-teleport", "-1"])
     print("[SCENARIO] S1 Active: Kinisi ayksimeni kata 30% apo to Baseline (Teleports Disabled)")
 elif CURRENT_SCENARIO == "S2":
-    sumoCmd.extend(["--time-to-teleport", "-1"])
+    sumoCmd.extend(["--scale", "1", "--time-to-teleport", "-1"])
+    print("[SCENARIO] S2 Active: Atyxhma sth deksia lwrida")
+elif CURRENT_SCENARIO == "S3":
+    sumoCmd.extend(["--scale", "1", "--time-to-teleport", "-1"])
+    print("[SCENARIO] S3 Active: One-lane construction (Erga)")
 elif CURRENT_SCENARIO == "S0":
     sumoCmd.extend(["--scale", "0.7", "--time-to-teleport", "-1"])
     print("[SCENARIO] S0 Active: Baseline off-peak traffic 70%")
 else:
     print(f"[SCENARIO] {CURRENT_SCENARIO} Active: Normal traffic")
+
  
 
 traci.start(sumoCmd)
@@ -44,6 +49,7 @@ ambulance_entered = False
 bus_entered = False
 step = 0
 active_tls = ""
+bus_start_time = -1
 
 
 obstacle_created = False  
@@ -55,30 +61,53 @@ while step < 6000:
     arrived_vehicles = traci.simulation.getArrivedIDList()
     # Βάζουμε >= 1000 για να περιμένει μέχρι να εμφανιστεί το ΠΡΩΤΟ διαθέσιμο αμάξι
     if CURRENT_SCENARIO == "S2" and step >= 1000 and not obstacle_created:
-            # Ψάχνουμε σε ΟΛΟ ΤΟΝ ΔΡΟΜΟ (edge) και όχι μόνο στη λωρίδα
-            cars_on_edge = traci.edge.getLastStepVehicleIDs("436872455")
+            cars_on_edge = traci.edge.getLastStepVehicleIDs("436872460")
             
             if len(cars_on_edge) > 0:
                 unlucky_car = cars_on_edge[0]
-                
                 try:
-                    # 1. Αναγκάζουμε το αμάξι να πάει στη ΔΕΞΙΑ λωρίδα (index 0) άμεσα!
+                    # Πάμε το αμάξι δεξιά, το σταματάμε και του ανάβουμε αλάρμ
                     traci.vehicle.changeLane(unlucky_car, 0, 0)
-                    
-                    # 2. Του κλείνουμε το AI για να μην κάνει προσπέραση και του μηδενίζουμε την ταχύτητα
                     traci.vehicle.setSpeedMode(unlucky_car, 0)
                     traci.vehicle.setSpeed(unlucky_car, 0.0)
-                    
-                    # 3. Αλάρμ και χρώμα
                     traci.vehicle.setColor(unlucky_car, (255, 0, 0, 255))
                     traci.vehicle.setSignals(unlucky_car, 3)
                     
-                    # ΠΡΟΣΟΧΗ: Δεν βάζουμε πουθενά την εντολή setDisallowed. Η λωρίδα μένει ανοιχτή!
-                    
-                    print(f"[SCENARIO S2] ΕΠΙΤΥΧΙΑ: Το αμάξι {unlucky_car} τράκαρε στη δεξιά λωρίδα στο step {step}!")
+                    print(f"[SCENARIO S2] ATYXHMA: Το όχημα {unlucky_car} τράκαρε και έμεινε ακινητοποιημένο!")
                     obstacle_created = True
                 except:
                     pass
+
+        # ==========================================
+        # S3: ONE-LANE CONSTRUCTION (Έργα στο δρόμο)
+        # ==========================================
+    if CURRENT_SCENARIO == "S3" and step == 1000:
+        try:
+            # Απλά απαγορεύει την κυκλοφορία στη λωρίδα (σαν να μπήκαν κώνοι)
+            traci.lane.setDisallowed("436872467#0_0", ["all"])
+            print(f"[SCENARIO S3] ERGA: H δεξιά λωρίδα έκλεισε στο step {step} λόγω έργων!")
+        except:
+            pass
+    # === TRACKER ΓΙΑ ΤΟ ΛΕΩΦΟΡΕΙΟ ===
+    if "city_bus.0" in active_vehicles and not bus_entered:
+        bus_entered = True
+        bus_start_time = step  # <--- Apothikeuei to step poy ksekinise
+        print(f"\n==================================================")
+        print(f"[INFO] To lewforeio (city_bus.0) mphke sto step {step}")
+        
+    if "city_bus.0" in arrived_vehicles:
+        bus_duration = step - bus_start_time  # <--- Ypologizei th diarkeia
+        print(f"\n==================================================")
+        print(f"[INFO] To lewforeio eftase ston proorismo tou sto step {step}")
+        print(f"--> Synolikos Xronos Lewforeiou: {bus_duration} deuterolepta.") # <--- Typwnei to apotelesma
+        print(f"==================================================\n") 
+        
+        if active_tls != "":
+            try:
+                traci.trafficlight.setProgram(active_tls, "0")
+                active_tls = ""
+            except traci.exceptions.TraCIException:
+                pass
 
     # --- Εφαρμογή S3: Τροχαίο Ατύχημα (Accident) ---
     if CURRENT_SCENARIO == "S3" and step == 1500:
@@ -110,11 +139,8 @@ while step < 6000:
     if "city_bus.0" in active_vehicles and not bus_entered:
         bus_entered = True
         print(f"[INFO] To lewforeio (city_bus.0) mphke sto step {step}")
-        
-    if "city_bus.0" in arrived_vehicles:
-        print(f"\n==================================================")
-        print(f"[INFO] To lewforeio eftase ston proorismo tou sto step {step}")   
-        print(f"\n==================================================") 
+    
+
         
         if active_tls != "":
             try:
