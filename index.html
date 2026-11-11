@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="el" class="scroll-smooth">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ilioupoli Traffic Lab · SUMO + TraCI</title>
+<meta name="description" content="Ζωντανή προσομοίωση κυκλοφοριακής συμφόρησης πάνω στο πραγματικό οδικό δίκτυο της Ηλιούπολης: διαταραχές, ασθενοφόρο και δυναμικό Green Wave με SUMO και TraCI.">
+<meta name="theme-color" content="#05080f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2305080f'/%3E%3Cpath d='M10 44 L26 28 L36 36 L54 16' stroke='%2322d3ee' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='54' cy='16' r='5' fill='%2334d399'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { ink: '#05080f', cy: '#22d3ee', em: '#34d399', am: '#fbbf24', ro: '#fb7185', vi: '#a78bfa' },
+    fontFamily: { display: ['"Space Grotesk"', 'Inter', 'sans-serif'], sans: ['Inter', 'system-ui', 'sans-serif'], mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'] }
+  } } };
+</script>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body class="antialiased">
+
+<!-- ===================================================== NAV -->
+<nav id="nav" class="fixed top-0 inset-x-0 z-50 transition-all duration-300">
+  <div class="mx-auto max-w-[1600px] px-4 sm:px-6 h-14 flex items-center justify-between">
+    <a href="#sim" class="flex items-center gap-2.5 group">
+      <span class="relative grid place-items-center w-8 h-8 rounded-lg bg-slate-900 border hair">
+        <svg viewBox="0 0 64 64" class="w-5 h-5"><path d="M10 46 L26 28 L36 36 L54 14" stroke="#22d3ee" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="54" cy="14" r="5.5" fill="#34d399"/></svg>
+      </span>
+      <span class="font-display font-semibold tracking-tight text-white">Ilioupoli<span class="text-cy">·</span>Lab</span>
+    </a>
+    <div class="hidden lg:flex items-center gap-7">
+      <a class="nav-link" href="#sim">Προσομοίωση</a>
+      <a class="nav-link" href="#pipeline">Αρχιτεκτονική</a>
+      <a class="nav-link" href="#code">Κώδικας</a>
+      <a class="nav-link" href="#scenarios">Σενάρια</a>
+      <a class="nav-link" href="#greenwave">Green Wave</a>
+      <a class="nav-link" href="#lab">Monte Carlo</a>
+      <a class="nav-link" href="#results">Αποτελέσματα</a>
+      <a class="nav-link" href="#roadmap">Roadmap</a>
+    </div>
+    <a href="https://github.com/nickosxanthopoulos/foltin" target="_blank" rel="noopener" class="btn btn-ghost !py-2 !px-3.5 !text-[13px]">
+      <svg viewBox="0 0 16 16" class="w-4 h-4 fill-current"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+      Repo
+    </a>
+  </div>
+</nav>
+
+<!-- ===================================================== HERO / LIVE SIMULATION -->
+<header id="sim" class="relative bg-ink lg:h-[100svh] lg:min-h-[720px] overflow-hidden">
+  <!-- canvas -->
+  <div class="relative h-[62svh] min-h-[420px] lg:h-full lg:absolute lg:inset-0 vignette scan">
+    <canvas id="cv" aria-label="Ζωντανή προσομοίωση κυκλοφορίας στην Ηλιούπολη"></canvas>
+
+    <!-- title -->
+    <div id="title" class="absolute z-10 left-4 sm:left-6 lg:left-10 top-[4.4rem] lg:top-24 max-w-[34rem] pointer-events-none transition-opacity duration-500">
+      <div class="eyebrow mb-3 flex items-center gap-2"><span class="dot bg-em pulse"></span> LIVE · SUMO + TraCI + Python</div>
+      <h1 class="font-display font-bold tracking-tight text-white leading-[.98] text-[2.5rem] sm:text-6xl lg:text-[4.3rem]">
+        Ilioupoli<br><span class="grad-text">Traffic Lab</span>
+      </h1>
+      <p class="mt-4 text-[15px] sm:text-base text-slate-300/90 leading-relaxed max-w-md">
+        Προσομοίωση κυκλοφοριακής συμφόρησης πάνω στο <b class="text-white font-semibold">πραγματικό οδικό δίκτυο</b> της Ηλιούπολης — με έργα, ατυχήματα, ασθενοφόρο και δυναμικό <b class="text-em font-semibold">Green Wave</b>.
+      </p>
+      <div class="mt-6 flex flex-wrap gap-3 pointer-events-auto">
+        <button id="btn-tour" class="btn btn-primary"><svg viewBox="0 0 20 20" class="w-4 h-4 fill-current"><path d="M6 4l11 6-11 6z"/></svg> Ξενάγηση</button>
+        <a href="#pipeline" class="btn btn-ghost">Πώς δουλεύει ↓</a>
+      </div>
+    </div>
+
+    <!-- caption (guided tour) -->
+    <div id="caption" class="hide absolute z-20 left-1/2 -translate-x-1/2 top-[5.2rem] lg:top-24 w-[min(92vw,640px)] pointer-events-none">
+      <div class="glass px-5 py-3.5 text-center">
+        <div id="cap-k" class="eyebrow mb-1.5">STEP</div>
+        <div id="cap-t" class="text-[15px] text-slate-100 leading-snug"></div>
+      </div>
+    </div>
+
+    <!-- progress overlay (fast-forward) -->
+    <div id="ffbar" class="hidden absolute z-20 left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 glass px-6 py-4 w-[min(80vw,360px)] text-center">
+      <div class="eyebrow mb-2">FAST-FORWARD</div>
+      <div class="text-sm text-slate-300 mb-3" id="ff-t">Προσομοίωση μέχρι το step 1880…</div>
+      <div class="bar"><i id="ff-b" class="bg-cy" style="width:0%"></i></div>
+    </div>
+
+    <!-- map hint -->
+    <div class="hidden lg:flex absolute z-10 right-[22.5rem] bottom-[11.5rem] items-center gap-2 text-[11px] text-slate-400 pointer-events-none">
+      <span class="kbd">scroll</span> zoom <span class="kbd">drag</span> μετακίνηση <span class="kbd">space</span> παύση <span class="kbd">dbl-click</span> reset
+    </div>
+  </div>
+
+  <!-- HUD overlay -->
+  <div class="relative lg:absolute lg:inset-0 z-10 lg:pointer-events-none">
+    <div class="h-full mx-auto max-w-[1700px] px-3 sm:px-6 pt-4 lg:pt-20 pb-6 lg:pb-5 flex flex-col lg:flex-row gap-4 lg:items-stretch lg:justify-end">
+
+      <!-- left/bottom: console + dock -->
+      <div class="order-1 flex-1 flex flex-col justify-end gap-3 min-w-0 lg:pointer-events-none">
+        <div class="glass pointer-events-auto w-full lg:max-w-[560px] overflow-hidden">
+          <div class="flex items-center justify-between px-3.5 py-2 border-b hair">
+            <div class="flex items-center gap-2 text-[11px] font-semibold text-slate-300 mono tracking-wide"><span class="dot bg-em pulse"></span> TraCI console</div>
+            <div class="text-[10.5px] text-slate-500 mono">traci.simulationStep()</div>
+          </div>
+          <div id="con" class="px-3 py-2 h-[132px] sm:h-[150px]"></div>
+        </div>
+
+        <!-- dock -->
+        <div class="glass pointer-events-auto p-3 flex flex-wrap items-center gap-x-4 gap-y-3">
+          <div class="flex items-center gap-2">
+            <button id="btn-play" class="iconbtn" title="Παύση / συνέχεια (space)" aria-label="play/pause">
+              <svg id="ic-pause" viewBox="0 0 20 20" class="w-4 h-4 fill-current"><path d="M5 4h3.5v12H5zM11.5 4H15v12h-3.5z"/></svg>
+              <svg id="ic-play" viewBox="0 0 20 20" class="w-4 h-4 fill-current hidden"><path d="M6 4l11 6-11 6z"/></svg>
+            </button>
+            <button id="btn-reset" class="iconbtn" title="Επανεκκίνηση" aria-label="reset"><svg viewBox="0 0 20 20" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10a6 6 0 1 0 2-4.5M4 3v4h4"/></svg></button>
+            <div class="seg" id="speeds">
+              <button data-speed="1">1×</button><button data-speed="5">5×</button><button data-speed="15" class="on">15×</button><button data-speed="40">40×</button><button data-speed="120">120×</button>
+            </div>
+          </div>
+          <div class="flex flex-wrap items-center gap-1.5" id="scs">
+            <span class="eyebrow !text-slate-500 mr-1 hidden sm:inline">Σενάριο</span>
+            <button class="chip" data-sc="S0" title="Baseline off-peak · scale 0.6">S0 Baseline</button>
+            <button class="chip" data-sc="S1" title="+κίνηση · scale 0.9">S1 Κίνηση</button>
+            <button class="chip red" data-sc="S2" title="Ατύχημα στην edge 436872460">S2 Ατύχημα</button>
+            <button class="chip warn on" data-sc="S3" title="Έργα: κλείνει η λωρίδα 436872467#0_0">S3 Έργα</button>
+          </div>
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <label class="switch g on" id="t-gw"><i></i>Green Wave</label>
+            <label class="switch" id="t-gps"><i></i>Δυναμικό GPS</label>
+            <label class="switch" id="t-rain"><i></i>Βροχή</label>
+            <label class="switch on" id="t-heat"><i></i>Heatmap</label>
+            <label class="switch" id="t-follow"><i></i>Ακολούθηση</label>
+          </div>
+          <button id="btn-ff" class="btn btn-ghost !py-2 !px-3 !text-[12.5px] ml-auto" title="Τρέχει headless μέχρι το step 1880">⏭ Στο ασθενοφόρο</button>
+        </div>
+      </div>
+
+      <!-- right: HUD cards -->
+      <aside class="order-2 w-full lg:w-[342px] flex-none flex flex-col gap-3 lg:pointer-events-auto lg:overflow-y-auto lg:max-h-[calc(100svh-6.2rem)] no-scrollbar">
+        <!-- metrics -->
+        <section class="glass p-3.5 pointer-events-auto">
+          <div class="flex items-center justify-between mb-2.5">
+            <div class="eyebrow">Live metrics</div>
+            <div class="mono text-[11px] text-slate-400 tnum"><span id="m-step">STEP 0</span> · <span id="m-clock">00:00:00</span></div>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="tile"><div class="k">Οχήματα</div><div class="v" id="m-veh">0</div></div>
+            <div class="tile"><div class="k">Σταματημένα</div><div class="v" id="m-stop">0<span class="u">οχ.</span></div></div>
+            <div class="tile"><div class="k">Συνολική καθυστ.</div><div class="v" id="m-delay">0<span class="u">s</span></div></div>
+            <div class="tile"><div class="k">Μέση ταχύτητα</div><div class="v" id="m-speed">0<span class="u">km/h</span></div></div>
+          </div>
+          <div class="mt-3 relative">
+            <canvas id="ch-main" class="w-full h-[74px]"></canvas>
+            <div class="absolute left-0 top-0 flex gap-3 text-[10px] mono text-slate-500"><span><i class="dot bg-cy"></i> οχήματα</span><span><i class="dot bg-ro"></i> σταματημένα</span></div>
+          </div>
+        </section>
+
+        <!-- ambulance -->
+        <section class="glass p-3.5 pointer-events-auto relative overflow-hidden" id="amb-card">
+          <div class="flex items-center justify-between mb-2.5">
+            <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full siren"></span><div class="eyebrow !text-ro">AMBULANCE_01</div></div>
+            <span id="amb-status" class="text-[11px] mono px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">αναμονή step 1900</span>
+          </div>
+          <div class="grid grid-cols-3 gap-2 text-center">
+            <div class="tile !p-2"><div class="k">Χρόνος</div><div class="v !text-[18px]" id="amb-el">—</div></div>
+            <div class="tile !p-2"><div class="k">Απομένουν</div><div class="v !text-[18px]" id="amb-rem">—</div></div>
+            <div class="tile !p-2"><div class="k">Ταχύτητα</div><div class="v !text-[18px]" id="amb-v">—</div></div>
+          </div>
+          <div class="mt-3 bar"><i id="amb-bar" class="bg-gradient-to-r from-ro to-am" style="width:0%"></i></div>
+          <div class="mt-2.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[11.5px] text-slate-400">
+            <span>Επόμενο φανάρι: <b id="amb-next" class="text-slate-200 mono">—</b></span>
+            <span><b id="amb-forced" class="text-em mono">0</b> forced green · <b id="amb-rr" class="text-vi mono">0</b> reroute</span>
+          </div>
+          <div id="amb-final" class="hidden mt-3 rounded-xl border border-em/40 bg-em/10 px-3 py-2 text-sm text-emerald-200"></div>
+        </section>
+
+        <!-- tabs -->
+        <section class="glass p-3.5 pointer-events-auto">
+          <div class="flex items-center gap-1 mb-3 -mx-1" id="tabs">
+            <button class="tab on" data-tab="tls">Φανάρια</button>
+            <button class="tab" data-tab="det">Detectors</button>
+            <button class="tab" data-tab="drv">Οδηγοί</button>
+            <button class="tab" data-tab="leg">Legend</button>
+          </div>
+          <div data-pane="tls">
+            <div id="tls-list" class="grid gap-1.5 max-h-[188px] overflow-y-auto pr-1"></div>
+            <div class="mt-2 text-[11px] text-slate-500 leading-snug">Πράσινο = πρόγραμμα από το <span class="mono text-slate-400">osm.net.xml</span>. Το <span class="text-em">★</span> σημαίνει ότι το TraCI έχει επιβάλει πράσινο.</div>
+          </div>
+          <div data-pane="det" class="hidden">
+            <div class="text-[11.5px] text-slate-400 mb-2 leading-snug">Sensor A (είσοδος <span class="mono text-slate-300">436872467#0</span>) vs Sensor B (έξοδος <span class="mono text-slate-300">436872455</span>) — Δ = οχήματα «κλειδωμένα» στο τμήμα.</div>
+            <canvas id="ch-det" class="w-full h-[84px]"></canvas>
+            <div class="mt-2 grid grid-cols-3 gap-2 text-center">
+              <div class="tile !p-2"><div class="k">A→</div><div class="v !text-[17px]" id="d-a">0</div></div>
+              <div class="tile !p-2"><div class="k">→B</div><div class="v !text-[17px]" id="d-b">0</div></div>
+              <div class="tile !p-2"><div class="k">Δ</div><div class="v !text-[17px]" id="d-d">0</div></div>
+            </div>
+            <div id="d-alert" class="mt-2 text-[11.5px] rounded-lg px-2.5 py-1.5 bg-slate-800/70 text-slate-400">B/A (60 s): — · ροή ομαλή</div>
+          </div>
+          <div data-pane="drv" class="hidden">
+            <div class="text-[11.5px] text-slate-400 mb-2 leading-snug">MC-temperament: 5 ομάδες οδηγών (speedFactor, accel, decel, tau) σε κάθε όχημα.</div>
+            <div id="drv-list" class="grid gap-1.5"></div>
+          </div>
+          <div data-pane="leg" class="hidden">
+            <div class="grid grid-cols-2 gap-x-3 gap-y-2 text-[12px] text-slate-300" id="legend"></div>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </div>
+</header>
+
+<!-- tech marquee -->
+<div class="border-y hair bg-slate-950/60 overflow-hidden py-3.5">
+  <div class="marquee mono text-[12px] tracking-[.2em] text-slate-500 uppercase" aria-hidden="true">
+    <span>SUMO 1.27</span><span>TraCI</span><span>Python</span><span>OpenStreetMap</span><span>netedit</span><span>Krauss car-following</span><span>Monte Carlo</span><span>E2 detectors</span><span>Green Wave</span><span>InfluxDB</span><span>Grafana</span><span>QGIS</span>
+    <span>SUMO 1.27</span><span>TraCI</span><span>Python</span><span>OpenStreetMap</span><span>netedit</span><span>Krauss car-following</span><span>Monte Carlo</span><span>E2 detectors</span><span>Green Wave</span><span>InfluxDB</span><span>Grafana</span><span>QGIS</span>
+  </div>
+</div>
+
+<main>
+<!-- ===================================================== NUMBERS -->
+<section class="relative py-16 sm:py-20">
+  <div class="mx-auto max-w-[1200px] px-4 sm:px-6">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-10 text-center">
+      <div class="reveal"><div class="stat-big text-white"><span data-count="720">0</span></div><div class="mt-2 text-sm text-slate-400">οδοί (edges) στο SUMO δίκτυο</div></div>
+      <div class="reveal d1"><div class="stat-big text-white"><span data-count="11">0</span></div><div class="mt-2 text-sm text-slate-400">φωτεινοί σηματοδότες με προγράμματα</div></div>
+      <div class="reveal d2"><div class="stat-big text-white"><span data-count="4000">0</span></div><div class="mt-2 text-sm text-slate-400">οχήματα/ώρα στη βασική ζήτηση</div></div>
+      <div class="reveal d3"><div class="stat-big text-white"><span data-count="6000">0</span><span class="text-cy text-3xl ml-1">steps</span></div><div class="mt-2 text-sm text-slate-400">το loop του TraCI ελέγχου</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================== PIPELINE -->
+<section id="pipeline" class="section">
+  <div class="absolute inset-x-0 top-0 h-[520px] grid-bg opacity-60 pointer-events-none"></div>
+  <div class="relative mx-auto max-w-[1300px] px-4 sm:px-6">
+    <div class="max-w-2xl reveal">
+      <div class="eyebrow mb-3">01 · Αρχιτεκτονική</div>
+      <h2 class="text-4xl sm:text-5xl font-bold text-white leading-[1.05]">Από έναν χάρτη του OSM<br>σε ένα <span class="grad-text">ζωντανό πείραμα</span></h2>
+      <p class="mt-5 text-slate-400 text-[17px] leading-relaxed">Το SUMO χρειάζεται τρία πράγματα: <b class="text-slate-200">πού</b> κινούνται τα οχήματα (δίκτυο), <b class="text-slate-200">ποια</b> και πόσα (ζήτηση) και <b class="text-slate-200">πώς</b> τρέχει το πείραμα (config). Πάνω τους, το Python/TraCI αλλάζει τον κόσμο ενώ τρέχει.</p>
+    </div>
+
+    <div class="pipe mt-14" id="pipe"></div>
+
+    <div id="pipe-detail" class="mt-8 glass p-6 sm:p-8 grid md:grid-cols-[1.1fr_1fr] gap-8 reveal"></div>
+
+    <div class="mt-16 grid md:grid-cols-3 gap-5">
+      <div class="card p-6 reveal"><div class="mono text-[11px] text-cy mb-3">.net.xml</div><h3 class="text-xl font-semibold text-white mb-2">Δίκτυο — «ο χάρτης»</h3><p class="text-sm text-slate-400 leading-relaxed">Γεωμετρία διασταυρώσεων, λωρίδες, όρια ταχύτητας, φανάρια. Παράγεται από OSM με <span class="mono text-slate-300">netconvert</span> και καθαρίζεται οπτικά στο <span class="mono text-slate-300">netedit</span> (διαγραφή άχρηστων στενών που βαραίνουν υπολογιστικά).</p></div>
+      <div class="card p-6 reveal d1"><div class="mono text-[11px] text-cy mb-3">.rou.xml</div><h3 class="text-xl font-semibold text-white mb-2">Ζήτηση — «ποιος οδηγεί»</h3><p class="text-sm text-slate-400 leading-relaxed">Τύποι οχημάτων και ροές: 1700 «πεισματάρηδες» + 900 «έξυπνα» (GPS) στον κεντρικό άξονα, 3 ροές γειτονιάς, λεωφορείο, φορτηγά και το <span class="mono text-slate-300">AMBULANCE_01</span> στο step 1900.</p></div>
+      <div class="card p-6 reveal d2"><div class="mono text-[11px] text-cy mb-3">.sumocfg</div><h3 class="text-xl font-semibold text-white mb-2">Config — «το master αρχείο»</h3><p class="text-sm text-slate-400 leading-relaxed">Δένει δίκτυο + ζήτηση + <span class="mono text-slate-300">s.add.xml</span> (στάση λεωφορείου). Το Python το φορτώνει με <span class="mono text-slate-300">traci.start([“sumo-gui”, “-c”, …])</span> και παίρνει τον έλεγχο.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================== CODE -->
+<section id="code" class="section bg-gradient-to-b from-transparent via-slate-950/70 to-transparent">
+  <div class="mx-auto max-w-[1300px] px-4 sm:px-6">
+    <div class="max-w-2xl reveal">
+      <div class="eyebrow mb-3">02 · Ο κώδικας</div>
+      <h2 class="text-4xl sm:text-5xl font-bold text-white leading-[1.05]">Το αρχείο <span class="mono text-cy text-[.8em]">code</span>,<br>βήμα προς βήμα</h2>
+      <p class="mt-5 text-slate-400 text-[17px] leading-relaxed">Ένα loop <span class="mono text-slate-200">while step &lt; 6000</span> που σε κάθε δευτερόλεπτο προσομοίωσης διαβάζει και τροποποιεί το δίκτυο. Διάλεξε βήμα — και δες το ίδιο πράγμα να συμβαίνει <b class="text-white">live</b> στον χάρτη.</p>
+    </div>
+
+    <div class="mt-12 grid lg:grid-cols-[360px_1fr] gap-6 items-start">
+      <div id="steps" class="grid gap-1.5 lg:sticky lg:top-20 reveal"></div>
+      <div class="glass overflow-hidden reveal d1">
+        <div class="flex items-center justify-between px-4 py-2.5 border-b hair">
+          <div class="flex items-center gap-2"><span class="dot bg-ro"></span><span class="dot bg-am"></span><span class="dot bg-em"></span><span class="ml-3 mono text-[12px] text-slate-400" id="code-file">code</span></div>
+          <span class="mono text-[11px] text-slate-500" id="code-lines"></span>
+        </div>
+        <div class="p-5 border-b hair bg-slate-950/40">
+          <div class="flex items-start justify-between gap-4 flex-wrap">
+            <div><h3 id="code-title" class="text-xl font-semibold text-white"></h3><p id="code-desc" class="mt-1.5 text-sm text-slate-400 leading-relaxed max-w-2xl"></p></div>
+            <button id="code-run" class="btn btn-primary !py-2.5 shrink-0"><svg viewBox="0 0 20 20" class="w-4 h-4 fill-current"><path d="M6 4l11 6-11 6z"/></svg><span id="code-run-t">Δες το live</span></button>
+          </div>
+        </div>
+        <pre class="code py-4 overflow-x-auto max-h-[520px]" id="code-body"></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================== SCENARIOS -->
+<section id="scenarios" class="section">
+  <div class="mx-auto max-w-[1300px] px-4 sm:px-6">
+    <div class="max-w-2xl reveal">
+      <div class="eyebrow mb-3">03 · Διαταραχές</div>
+      <h2 class="text-4xl sm:text-5xl font-bold text-white leading-[1.05]">Τέσσερα σενάρια,<br><span class="grad-text">μία διασταύρωση</span></h2>
+      <p class="mt-5 text-slate-400 text-[17px] leading-relaxed">Ο ίδιος κεντρικός άξονας (<span class="mono text-slate-200">66113514#0 → 842961266#4</span>, 22 edges, ~940 m) κάτω από διαφορετικές συνθήκες. Αλλάζει μόνο μία γραμμή: <span class="mono text-cy">CURRENT_SCENARIO</span>.</p>
+    </div>
+    <div class="mt-12 grid sm:grid-cols-2 xl:grid-cols-4 gap-5" id="sc-cards"></div>
+
+    <div class="mt-16 grid lg:grid-cols-2 gap-6">
+      <div class="glass p-6 sm:p-7 reveal">
+        <div class="eyebrow mb-3">Τύποι οχημάτων · osm.rou.xml</div>
+        <div id="vtypes" class="grid gap-3"></div>
+      </div>
+      <div class="glass p-6 sm:p-7 reveal d1">
+        <div class="eyebrow mb-3">MC-temperament · 5 ψυχολογίες οδηγού</div>
+        <p class="text-sm text-slate-400 mb-4 leading-relaxed">Η πολυπλοκότητα της συμφόρησης προέρχεται από την ανομοιογένεια. Κάθε όχημα παίρνει τυχαία μία από πέντε προσωπικότητες που αλλάζουν <span class="mono text-slate-300">speedFactor</span>, επιτάχυνση, πέδηση και <span class="mono text-slate-300">tau</span> (χρόνο αντίδρασης).</p>
+        <div id="temps" class="grid gap-3"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================== GREEN WAVE -->
+<section id="greenwave" class="section bg-gradient-to-b from-transparent via-slate-950/70 to-transparent">
+  <div class="mx-auto max-w-[1300px] px-4 sm:px-6">
+    <div class="max-w-2xl reveal">
+      <div class="eyebrow mb-3">04 · Green Wave (V2I)</div>
+      <h2 class="text-4xl sm:text-5xl font-bold text-white leading-[1.05]">Το ασθενοφόρο<br><span class="text-em">μιλάει</span> στα φανάρια</h2>
+      <p class="mt-5 text-slate-400 text-[17px] leading-relaxed">Σε κάθε step το Python ρωτά <span class="mono text-slate-200">getNextTLS()</span>. Όταν το επόμενο φανάρι είναι πιο κοντά από 400 m, το αναγκάζει σε πράσινο — <b class="text-white">μόνο</b> για τη λωρίδα του ασθενοφόρου.</p>
+    </div>
+
+    <div class="mt-12 grid lg:grid-cols-[1.35fr_1fr] gap-6">
+      <div class="glass p-4 sm:p-6 reveal">
+        <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+          <div class="eyebrow">Αγώνας · ίδια κίνηση, ίδιο ασθενοφόρο</div>
+          <button id="race-restart" class="chip">↺ Ξανά</button>
+        </div>
+        <canvas id="race" class="w-full h-[270px] sm:h-[300px] rounded-xl"></canvas>
+        <div class="mt-3 grid grid-cols-2 gap-3 text-sm">
+          <div class="tile"><div class="k flex items-center gap-1.5"><i class="dot bg-ro"></i> Χωρίς Green Wave</div><div class="v" id="race-a">0.0<span class="u">s</span></div></div>
+          <div class="tile" style="border-color:rgba(52,211,153,.4)"><div class="k flex items-center gap-1.5"><i class="dot bg-em"></i> Με Green Wave (400 m)</div><div class="v" id="race-b">0.0<span class="u">s</span></div></div>
+        </div>
+        <p class="mt-3 text-[11.5px] text-slate-500 leading-relaxed">Εικονογράφηση σε απλοποιημένο 1D μοντέλο (ίδια σπορά κίνησης και στα δύο). Το πλήρες 2D μοντέλο βρίσκεται στο hero και στο Monte Carlo lab.</p>
+      </div>
+
+      <div class="grid gap-4 content-start">
+        <div class="glass p-6 reveal d1">
+          <div class="eyebrow mb-4">Ο αλγόριθμος</div>
+          <ol class="grid gap-3.5 text-[14px] text-slate-300" id="gw-steps"></ol>
+        </div>
+        <div class="rounded-2xl p-6 border border-am/30 bg-gradient-to-br from-amber-400/10 to-transparent reveal d2">
+          <div class="flex items-center gap-2 mb-2"><span class="text-am text-lg">⚠</span><div class="eyebrow !text-am">Μάθημα από τα πειράματα</div></div>
+          <p class="text-[14px] text-slate-300 leading-relaxed">Όταν εφαρμόσαμε <b class="text-white">ακαριαίο</b> πράσινο στο ασθενοφόρο και κόκκινο σε όλους τους άλλους, ο χρόνος διαδρομής <b class="text-ro">χειροτέρεψε από 519 s σε 690 s</b>: τα οχήματα που διέσχιζαν τον κόμβο «πάγωσαν» μέσα στο κουτί της διασταύρωσης και έκλεισαν τον δρόμο. Σε μεγάλα clusters χρειάζεται <b class="text-white">φάση εκκένωσης</b> (κίτρινο) πριν το πράσινο.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================== MONTE CARLO LAB -->
+<section id="lab" class="section">
+  <div class="mx-auto max-w-[1300px] px-4 sm:px-6">
+    <div class="max-w-2xl reveal">
+      <div class="eyebrow mb-3">05 · Monte Carlo lab</div>
+      <h2 class="text-4xl sm:text-5xl font-bold text-white leading-[1.05]">Μία κίνηση είναι τύχη.<br><span class="grad-text">Εκατό</span> είναι απόδειξη.</h2>
+      <p class="mt-5 text-slate-400 text-[17px] leading-relaxed">Το ίδιο πείραμα τρέχει πολλές φορές με <b class="text-slate-200">ίδια seeds</b> σε τέσσερα σκέλη: baseline, μόνο Green Wave, μόνο δυναμικό GPS και συνδυασμός. Έτσι ξεχωρίζει <i>τι</i> φέρνει το κέρδος — και αν είναι τύχη. Τρέχει εδώ, στον browser σου, με Web Workers.</p>
+    </div>
+
+    <div class="mt-12 glass p-5 sm:p-7 reveal">
+      <div class="flex flex-wrap items-end gap-x-6 gap-y-4 mb-6">
+        <div>
+          <div class="eyebrow !text-slate-500 mb-2">Σενάριο</div>
+          <div class="seg" id="mc-sc"><button data-v="S0">S0</button><button data-v="S1">S1</button><button data-v="S2">S2</button><button data-v="S3" class="on">S3</button></div>
+        </div>
+        <div>
+          <div class="eyebrow !text-slate-500 mb-2">Επαναλήψεις (seeds)</div>
+          <div class="seg" id="mc-n"><button data-v="6">6</button><button data-v="12" class="on">12</button><button data-v="24">24</button><button data-v="48">48</button></div>
+        </div>
+        <button id="mc-run" class="btn btn-primary"><svg viewBox="0 0 20 20" class="w-4 h-4 fill-current"><path d="M6 4l11 6-11 6z"/></svg> Τρέξε το Monte Carlo</button>
+        <div class="flex-1 min-w-[220px]">
+          <div class="flex justify-between text-[11px] mono text-slate-500 mb-1.5"><span id="mc-status">έτοιμο</span><span id="mc-pct">0%</span></div>
+          <div class="bar"><i id="mc-bar" class="bg-gradient-to-r from-cy to-vi" style="width:0%"></i></div>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-[1.6fr_1fr] gap-6">
+        <div>
+          <canvas id="mc-chart" class="w-full h-[300px] rounded-xl bg-slate-950/50 border hair"></canvas>
+          <div class="mt-2 text-[11.5px] text-slate-500">Κάθε τελεία = ένα seed · ▼ μέσος όρος · λευκή γραμμή = διάμεσος · πλαίσιο = ενδοτεταρτημοριακό εύρος. Μικρότερο = γρηγορότερο ασθενοφόρο.</div>
+        </div>
+        <div class="grid gap-3 content-start" id="mc-stats">
+          <div id="mc-table" class="grid gap-2.5"></div>
+          <p id="mc-note" class="text-[12px] text-slate-500 leading-relaxed"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================== RESULTS -->
+<section id="results" class="section bg-gradient-to-b from-transparent via-slate-950/70 to-transparent">
+  <div class="mx-auto max-w-[1300px] px-4 sm:px-6">
+    <div class="max-w-2xl reveal">
+      <div class="eyebrow mb-3">06 · Αποτελέσματα από το SUMO</div>
+      <h2 class="text-4xl sm:text-5xl font-bold text-white leading-[1.05]">Τι μετρήσαμε<br><span class="grad-text">στην πραγματική προσομοίωση</span></h2>
+      <p class="mt-5 text-slate-400 text-[17px] leading-relaxed">Αυτά είναι τα συμπεράσματα του README, από τρεξίματα στο ίδιο το SUMO (όχι από τη μηχανή του browser).</p>
+    </div>
+
+    <div class="mt-12 grid md:grid-cols-2 xl:grid-cols-4 gap-5">
+      <div class="card p-6 reveal">
+        <div class="eyebrow !text-slate-500 mb-4">Realismos · Insertion</div>
+        <div class="stat-big text-white"><span data-count="13">0</span><span class="text-cy text-3xl ml-1">s</span></div>
+        <p class="mt-3 text-sm text-slate-400 leading-relaxed">Το ασθενοφόρο είχε οριστεί για step 1900 αλλά μπήκε στο 1913: το SUMO περίμενε να υπάρξει ασφαλές κενό (car-following gap) — δεν «πετάει» οχήματα πάνω σε άλλα.</p>
+      </div>
+      <div class="card p-6 reveal d1">
+        <div class="eyebrow !text-slate-500 mb-4">Τελικός χρόνος διαδρομής</div>
+        <div class="stat-big text-white"><span data-count="340">0</span><span class="text-em text-3xl ml-1">s</span></div>
+        <p class="mt-3 text-sm text-slate-400 leading-relaxed">Άφιξη στο step 2253 με dynamic GPS (<span class="mono text-slate-300">&lt;trip&gt; rerouting</span>) μέσα από φορτίο ~1000 οχημάτων.</p>
+      </div>
+      <div class="card p-6 reveal d2">
+        <div class="eyebrow !text-slate-500 mb-4">A/B: naive Green Wave</div>
+        <div class="stat-big"><span class="text-slate-300"><span data-count="519">0</span></span><span class="text-slate-500 text-2xl mx-1">→</span><span class="text-ro"><span data-count="690">0</span></span></div>
+        <p class="mt-3 text-sm text-slate-400 leading-relaxed">Το ακαριαίο πράσινο <i>χειροτέρεψε</i> τον χρόνο (+33%): trapped vehicles στο κουτί της διασταύρωσης. Αντικείμενο της επόμενης βελτίωσης.</p>
+      </div>
+      <div class="card p-6 reveal d3">
+        <div class="eyebrow !text-slate-500 mb-4">Υγεία δικτύου</div>
+        <div class="stat-big text-white"><span data-count="0">0</span><span class="text-em text-3xl ml-2">gridlocks</span></div>
+        <p class="mt-3 text-sm text-slate-400 leading-relaxed">Παρά τα forced greens, η υπόλοιπη Ηλιούπολη συνέχισε ομαλά μέχρι το τέλος — κανένα όχημα δεν εγκλωβίστηκε.</p>
+      </div>
+    </div>
+
+    <div class="mt-5 grid lg:grid-cols-[1.15fr_1fr] gap-5">
+      <div class="glass p-6 sm:p-7 reveal">
+        <div class="eyebrow mb-4">V2I σε δράση · forced green ανά απόσταση</div>
+        <div class="flex items-end gap-3 sm:gap-5 h-[150px]" id="radar"></div>
+        <p class="mt-4 text-sm text-slate-400 leading-relaxed">Στο terminal καταγράφηκαν συνεχείς παρεμβάσεις <span class="mono text-em">[GREEN WAVE] Forced Prasino</span> σε διαφορετικές αποστάσεις (149.5 m, 143.6 m, 128.5 m, 112.1 m): το σύστημα παρακολουθεί το ασθενοφόρο σε πραγματικό χρόνο και ανοίγει τον δρόμο <i>πριν</i> χρειαστεί να φρενάρει.</p>
+      </div>
+      <div class="glass p-6 sm:p-7 reveal d1">
+        <div class="eyebrow mb-4">A/B test · ορισμός</div>
+        <div class="grid gap-3 text-sm">
+          <div class="flex gap-3 items-start rounded-xl border hair p-4 bg-slate-950/40"><span class="mono text-ro font-bold">A</span><div><div class="text-white font-semibold mb-1">Baseline</div><div class="text-slate-400">Χωρίς Green Wave · διαχωρισμός ροών 65/35 · ασθενοφόρο χωρίς reroute.</div></div></div>
+          <div class="flex gap-3 items-start rounded-xl border border-em/30 p-4 bg-em/5"><span class="mono text-em font-bold">B</span><div><div class="text-white font-semibold mb-1">Green Wave + Dynamic GPS</div><div class="text-slate-400">Forced green μέσα σε 400 m · <span class="mono">device.rerouting</span> κάθε 100 s.</div></div></div>
+          <div class="text-[13px] text-slate-500 leading-relaxed">Στόχος: συγκρίνουμε τους χρόνους και μετράμε τον χρόνο που «κερδίσαμε», που τροφοδοτεί το mitigation scenario (WP6).</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================== ROADMAP -->
+<section id="roadmap" class="section">
+  <div class="mx-auto max-w-[1100px] px-4 sm:px-6">
+    <div class="max-w-2xl reveal">
+      <div class="eyebrow mb-3">07 · Roadmap 2026–2027</div>
+      <h2 class="text-4xl sm:text-5xl font-bold text-white leading-[1.05]">Έξι Work Packages</h2>
+      <p class="mt-5 text-slate-400 text-[17px] leading-relaxed">Από τη βασική προσομοίωση μέχρι κοινωνικο-οικονομικό κόστος και στρατηγικές μείωσης συμφόρησης.</p>
+    </div>
+    <div class="timeline mt-14 grid gap-4" id="wps"></div>
+  </div>
+</section>
+
+<!-- ===================================================== REPO -->
+<section id="repo" class="section bg-gradient-to-b from-transparent via-slate-950/70 to-slate-950/90">
+  <div class="mx-auto max-w-[1300px] px-4 sm:px-6">
+    <div class="max-w-2xl reveal">
+      <div class="eyebrow mb-3">08 · Το repo</div>
+      <h2 class="text-4xl sm:text-5xl font-bold text-white leading-[1.05]">Τι υπάρχει <span class="grad-text">μέσα</span></h2>
+    </div>
+    <div class="mt-12 grid lg:grid-cols-[1.3fr_1fr] gap-6">
+      <div class="glass overflow-hidden reveal">
+        <div class="px-4 py-2.5 border-b hair mono text-[12px] text-slate-400 flex items-center justify-between"><span>foltin/</span><span id="files-n"></span></div>
+        <div id="files" class="divide-y divide-slate-800/60"></div>
+      </div>
+      <div class="grid gap-5 content-start">
+        <div class="glass p-6 reveal d1">
+          <div class="eyebrow mb-4">Τρέξτο στο SUMO</div>
+          <pre class="mono text-[12.5px] leading-relaxed text-slate-300 whitespace-pre-wrap">
+<span class="tk-c"># 1. εγκατάσταση SUMO + μεταβλητή περιβάλλοντος</span>
+<span class="tk-k">set</span> SUMO_HOME=C:\Program Files (x86)\Eclipse\Sumo
+pip install traci
+
+<span class="tk-c"># 2. διάλεξε σενάριο στο αρχείο code</span>
+CURRENT_SCENARIO = <span class="tk-s">"S3"</span>   <span class="tk-c"># S0 · S1 · S2 · S3</span>
+
+<span class="tk-c"># 3. τρέξε</span>
+python code</pre>
+        </div>
+        <div class="glass p-6 reveal d2">
+          <div class="eyebrow mb-4">Αυτή η σελίδα</div>
+          <div class="text-sm text-slate-400 leading-relaxed grid gap-2.5">
+            <div><span class="mono text-slate-200">tools/build_data.py</span> διαβάζει τα πραγματικά αρχεία του repo (<span class="mono">osm.net.xml</span>, <span class="mono">s.add.xml</span>, <span class="mono">osm.trips.xml</span>, <span class="mono">map.osm</span>) και παράγει το <span class="mono">assets/data.js</span>.</div>
+            <div><span class="mono text-slate-200">assets/sim.js</span> είναι μια οπτική επανυλοποίηση της λογικής του <span class="mono">code</span> στον browser: Krauss car-following, αλλαγή λωρίδας, priority junctions, προγράμματα σηματοδοτών, σενάρια S0–S3 και Green Wave.</div>
+            <div class="rounded-lg bg-slate-950/60 border hair px-3 py-2.5 text-[12.5px] text-slate-500">Δεν είναι το SUMO: ο φυσικός μηχανισμός είναι απλοποιημένος και η ζήτηση βαθμονομημένη (×0.55), ώστε να φαίνονται οι ουρές. Οι πραγματικές μετρήσεις είναι αυτές της ενότητας «Αποτελέσματα».</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="border-t hair bg-slate-950">
+  <div class="mx-auto max-w-[1300px] px-4 sm:px-6 py-10 flex flex-wrap items-center justify-between gap-4 text-sm text-slate-500">
+    <div class="flex items-center gap-2.5"><span class="font-display font-semibold text-slate-300">Ilioupoli<span class="text-cy">·</span>Lab</span> <span>Traffic Congestion Simulation 2026–2027</span></div>
+    <div class="flex items-center gap-5">
+      <span>Χάρτης © <a class="underline hover:text-slate-300" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a></span>
+      <a class="underline hover:text-slate-300" href="https://sumo.dlr.de/" target="_blank" rel="noopener">Eclipse SUMO</a>
+      <a class="underline hover:text-slate-300" href="https://github.com/nickosxanthopoulos/foltin" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/data.js"></script>
+<script src="assets/sim.js"></script>
+<script src="assets/app.js"></script>
+<script src="assets/lab.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>
