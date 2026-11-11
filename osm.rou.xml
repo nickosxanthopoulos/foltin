@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 2026-10-19 18:31:06.936485 by Eclipse SUMO randomTrips.py v1_27_1+0000-7717f2379d9
+<configuration>
+    <net-file value="osm.net.xml"/>
+    <output-trip-file value="osm.trips.xml"/>
+    <route-file value="osm.rou.xml"/>
+</configuration>
+-->
+
+<!-- generated on 2026-10-19T18:31:06.772237+02:00 by Eclipse SUMO duarouter 1.27.1
+<duarouterConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/duarouterConfiguration.xsd">
+
+    <input>
+        <net-file value="osm.net.xml"/>
+        <route-files value="osm.trips.xml"/>
+    </input>
+
+    <output>
+        <output-file value="osm.rou.xml"/>
+        <alternatives-output value="NUL"/>
+    </output>
+
+    <processing>
+        <routing-threads value="14"/>
+    </processing>
+
+    <time>
+        <begin value="0"/>
+        <end value="3600.0"/>
+    </time>
+
+    <report>
+        <no-warnings value="true"/>
+        <ignore-errors value="true"/>
+        <no-step-log value="true"/>
+    </report>
+
+</duarouterConfiguration>
+-->
+
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+    
+    <!-- 1. ORISMOS TYPWN OXHMATWN -->
+
+
+<vType id="freight_truck" vClass="passenger" accel="0.8" decel="2.5" length="12.0" maxSpeed="15.0" color="139,69,19" guiShape="truck"/>
+<!-- KANONIKA AMAXIA (kanonika-kitrino, smart-mple, asthenoforo-kokkino) -->
+<vType id="normal_car" color="yellow" guiShape="passenger/sedan"/>
+
+    <!-- SMART AMAXIA -->
+<vType id="smart_car" color="blue" guiShape="passenger/hatchback">
+    <param key="has.rerouting.device" value="true"/>
+    <param key="device.rerouting.period" value="30"/>
+</vType>
+
+    <!-- ASTHENOFORO -->
+<vType id="ambulance_type" vClass="emergency" color="red" guiShape="emergency">
+    <param key="has.rerouting.device" value="true"/>
+    <param key="device.rerouting.period" value="100"/>
+    <param key="device.rerouting.adaptation-interval" value="200"/>
+</vType>
+
+    <!-- ΛΕΩΦΟΡΕΙΟ -->
+<vType id="bus_type" vClass="bus" color="green" guiShape="bus" length="12.0" width="2.5"/>
+<!-- === 3. OI ROES (65% KENTRIKH / 35% BACKGROUND) === -->
+
+        
+    <!-- A) KENTRIKH KUKLOFORIA (65% tou synolou = 2600 vehs/hour) -->
+    <!-- Xrhsimopoioun pleon ta from/to anti gia katesvato edges -->
+    <flow id="main_stubborn" type="normal_car" begin="0" end="3600" vehsPerHour="1700" from="66113514#0" to="842961266#4" />
+    <flow id="main_smart" type="smart_car" begin="0" end="3600" vehsPerHour="900" from="66113514#0" to="842961266#4" />
+
+    <!-- B) BACKGROUND TRAFFIC - GEITONIES (35% tou synolou = 1400 vehs/hour) -->
+    <flow id="bg_traffic_1" type="normal_car" begin="0" end="3600" vehsPerHour="460" from="559496356#0" to="32124266#10" />
+    <flow id="bg_traffic_2" type="normal_car" begin="0" end="3600" vehsPerHour="460" from="447570217#0" to="-132150622#0" />
+    <flow id="bg_traffic_3" type="normal_car" begin="0" end="3600" vehsPerHour="480" from="1289157642#0" to="5170043#8" />
+
+
+    <!-- C) ROI LEWFOREIWN ME STASEIS -->
+    <flow id="city_bus" type="bus_type" begin="1200" end="3600" vehsPerHour="10" from="66113514#0" to="-132150622#0"/>
+
+    <flow id="trucks_main" type="freight_truck" begin="0" end="3600" probability="0.2" from="66113514#0" to="842961266#4" departLane="free" departPos="free" departSpeed="max" />
+
+    <trip id="AMBULANCE_01" type="ambulance_type" depart="1900" from="66113514#0" to="842961266#4" departLane="free" />
