@@ -26,16 +26,17 @@ sumoCmd = [sumoBinary, "-c", config_path]
 
 # --- Εφαρμογή S1: Αύξηση κίνησης 30% ---
 if CURRENT_SCENARIO == "S1":
-    sumoCmd.extend(["--scale", "1", "--time-to-teleport", "-1"])
+    sumoCmd.extend(["--scale", "0.9", "--time-to-teleport", "-1"])
     print("[SCENARIO] S1 Active: Kinisi ayksimeni kata 30% apo to Baseline (Teleports Disabled)")
 elif CURRENT_SCENARIO == "S2":
-    sumoCmd.extend(["--scale", "1", "--time-to-teleport", "-1"])
+    sumoCmd.extend(["--scale", "0.8", "--time-to-teleport", "-1"])
     print("[SCENARIO] S2 Active: Atyxhma sth deksia lwrida")
 elif CURRENT_SCENARIO == "S3":
-    sumoCmd.extend(["--scale", "1", "--time-to-teleport", "-1"])
+    # Βάζουμε teleport 150 αντί για -1 για να αποφύγουμε το μόνιμο gridlock
+    sumoCmd.extend(["--scale", "0.8", "--time-to-teleport", "150"]) 
     print("[SCENARIO] S3 Active: One-lane construction (Erga)")
 elif CURRENT_SCENARIO == "S0":
-    sumoCmd.extend(["--scale", "0.7", "--time-to-teleport", "-1"])
+    sumoCmd.extend(["--scale", "0.6", "--time-to-teleport", "-1"])
     print("[SCENARIO] S0 Active: Baseline off-peak traffic 70%")
 else:
     print(f"[SCENARIO] {CURRENT_SCENARIO} Active: Normal traffic")
@@ -52,13 +53,59 @@ active_tls = ""
 bus_start_time = -1
 
 
-obstacle_created = False  
+obstacle_created = False 
+truck_entered = False 
 
 while step < 6000:
     traci.simulationStep()
+
+    # ==================================================
+    # ULTIMATE TRUCK DEBUGGER (STEP 100)
+    # ==================================================
+    if step == 100:
+        print("\n[DEBUG] Ξεκινάει η προσπάθεια να μπει το φορτηγό μέσω Python...")
+        try:
+            # 1. Ζητάμε από το SUMO να βρει τη διαδρομή 
+            # Αυτό θα ελέγξει αν ο χάρτης μπλοκάρει το όχημα
+            route = traci.simulation.findRoute("66113514#0", "842961266#4", "freight_truck")
+            
+            if not route.edges:
+                print(">>> [FATAL] Το SUMO λέει ότι ΔΕΝ υπάρχει διαδρομή! Ή είναι κομμένος ο δρόμος, ή δεν έβαλες vClass='passenger' στο XML!")
+            else:
+                # 2. Φτιάχνουμε τη διαδρομή και χώνουμε το φορτηγό με το ζόρι
+                traci.route.add("traci_truck_route", route.edges)
+                traci.vehicle.add(
+                    vehID="PYTHON_TRUCK", 
+                    routeID="traci_truck_route", 
+                    typeID="freight_truck",
+                    departLane="free", 
+                    departPos="free", 
+                    departSpeed="max"
+                )
+                
+                # 3. Το κάνουμε ΡΟΖ για να κάνει μπαμ στο μάτι σου
+                traci.vehicle.setColor("PYTHON_TRUCK", (255, 0, 255, 255))
+                print(">>> [ΕΠΙΤΥΧΙΑ] Το φορτηγό ΜΠΗΚΕ! Ψάξε στο GUI στο step 100 για ένα ροζ φορτηγό!")
+                
+        except Exception as e:
+            # Αν κάτι πάει στραβά, αυτό θα μας πει ΕΠΙΤΕΛΟΥΣ το γιατί!
+            print(f">>> [TRACI ERROR] Να γιατί δεν έμπαινε τόσο καιρό: {e}")
     
     active_vehicles = traci.vehicle.getIDList()
     arrived_vehicles = traci.simulation.getArrivedIDList()
+    # === TRACKER ΓΙΑ ΤΑ FREIGHT TRUCKS ===
+    if step == 20:
+        pending = list(traci.simulation.getPendingVehicles())
+        print(f"\n[DEBUG] Oxhmata sthn oura anamonhs (Pending) sto step 20: {pending}\n")
+    if not truck_entered:
+        for veh_id in active_vehicles:
+            if veh_id.startswith("trucks_main"):
+                truck_entered = True
+                print(f"\n==================================================")
+                print(f"[INFO] Το prwto fortigo ({veh_id}) mphke sto simulation sto step {step}!")
+                print(f"==================================================\n")
+                break
+
     # Βάζουμε >= 1000 για να περιμένει μέχρι να εμφανιστεί το ΠΡΩΤΟ διαθέσιμο αμάξι
     if CURRENT_SCENARIO == "S2" and step >= 1000 and not obstacle_created:
             cars_on_edge = traci.edge.getLastStepVehicleIDs("436872460")
@@ -109,16 +156,7 @@ while step < 6000:
             except traci.exceptions.TraCIException:
                 pass
 
-    # --- Εφαρμογή S3: Τροχαίο Ατύχημα (Accident) ---
-    if CURRENT_SCENARIO == "S3" and step == 1500:
-        if len(active_vehicles) > 0:
-            crashed_car = active_vehicles[0]
-            try:
-                traci.vehicle.setSpeed(crashed_car, 0)
-                traci.vehicle.setColor(crashed_car, (0, 0, 0)) # Κάνει το αμάξι μαύρο
-                print(f"[SCENARIO S3] ATYXHMA: To oxhma {crashed_car} trakara kai stamatise!")
-            except traci.exceptions.TraCIException:
-                pass
+
 
     # 1. ELEGKHOS EISODOU KAI EKSODOU ASTHENOFOROU
     if "AMBULANCE_01" in active_vehicles and not ambulance_entered:
@@ -162,7 +200,7 @@ while step < 6000:
             tls_index = next_tls_info[1]    
             distance = next_tls_info[2]     
 
-            if distance < 150.0:
+            if distance < 400.0:
                 try:
                     if active_tls != "" and active_tls != tls_id:
                         traci.trafficlight.setProgram(active_tls, "0")
@@ -189,7 +227,7 @@ while step < 6000:
 
     elif active_tls != "":
         try:
-          #  traci.trafficlight.setProgram(active_tls, "0")
+            traci.trafficlight.setProgram(active_tls, "0")
             active_tls = ""
         except traci.exceptions.TraCIException:
             pass
