@@ -60,36 +60,34 @@ while step < 6000:
     traci.simulationStep()
 
     # ==================================================
-    # ULTIMATE TRUCK DEBUGGER (STEP 100)
+    # DYNAMIC FREIGHT TRUCK FLOW (80 trucks / hour)
     # ==================================================
-    if step == 100:
-        print("\n[DEBUG] Ξεκινάει η προσπάθεια να μπει το φορτηγό μέσω Python...")
+    if step > 0 and step <= 3600 and step % 45 == 0:
+        truck_id = f"trucks_main_{step}"
         try:
-            # 1. Ζητάμε από το SUMO να βρει τη διαδρομή 
-            # Αυτό θα ελέγξει αν ο χάρτης μπλοκάρει το όχημα
-            route = traci.simulation.findRoute("66113514#0", "842961266#4", "freight_truck")
+            route_id = "main_truck_route"
             
-            if not route.edges:
-                print(">>> [FATAL] Το SUMO λέει ότι ΔΕΝ υπάρχει διαδρομή! Ή είναι κομμένος ο δρόμος, ή δεν έβαλες vClass='passenger' στο XML!")
-            else:
-                # 2. Φτιάχνουμε τη διαδρομή και χώνουμε το φορτηγό με το ζόρι
-                traci.route.add("traci_truck_route", route.edges)
+            # 1. Ελέγχουμε αν η διαδρομή υπάρχει ήδη (Safe method)
+            if route_id not in traci.route.getIDList():
+                route = traci.simulation.findRoute("66113514#0", "842961266#4", "freight_truck")
+                if route.edges:
+                    traci.route.add(route_id, route.edges)
+            
+            # 2. Αν η διαδρομή μπήκε επιτυχώς, βάζουμε το όχημα
+            if route_id in traci.route.getIDList():
                 traci.vehicle.add(
-                    vehID="PYTHON_TRUCK", 
-                    routeID="traci_truck_route", 
+                    vehID=truck_id, 
+                    routeID=route_id, 
                     typeID="freight_truck",
                     departLane="free", 
                     departPos="free", 
                     departSpeed="max"
                 )
-                
-                # 3. Το κάνουμε ΡΟΖ για να κάνει μπαμ στο μάτι σου
-                traci.vehicle.setColor("PYTHON_TRUCK", (255, 0, 255, 255))
-                print(">>> [ΕΠΙΤΥΧΙΑ] Το φορτηγό ΜΠΗΚΕ! Ψάξε στο GUI στο step 100 για ένα ροζ φορτηγό!")
+                traci.vehicle.setColor(truck_id, (139, 69, 19, 255)) 
                 
         except Exception as e:
-            # Αν κάτι πάει στραβά, αυτό θα μας πει ΕΠΙΤΕΛΟΥΣ το γιατί!
-            print(f">>> [TRACI ERROR] Να γιατί δεν έμπαινε τόσο καιρό: {e}")
+            # Αν κάτι πάει στραβά, τυπώνει το λάθος στο terminal αντί να κρασάρει το SUMO!
+            print(f">>> [TRUCK ERROR] Λάθος στο Step {step}: {e}")
     
     active_vehicles = traci.vehicle.getIDList()
     arrived_vehicles = traci.simulation.getArrivedIDList()
