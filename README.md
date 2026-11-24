@@ -287,3 +287,12 @@ and if the entry road is blocked by the insertion queue it enters one edge furth
 **IMPORTANT**
 
 Run 1 of S0A_CRASH and run 1 of S0B_CRASH get the same seed and the same crash. The only difference between them is the traffic level, so the comparison is fair. Statisticians call this "common random numbers".
+
+
+SOB WORKS looks better than SOB normal because there were less cars entering the simulation during the WORKS====>>>
+
+This explains three odd results:
+
+WORKS looks better than the baseline: a closed lane lets even fewer main-road vehicles in. The main-road vehicles that did get in lost more time (340 s vs 309 s), but there were fewer of them, so the overall average went down. The worst delay happens outside the network, waiting to enter, and timeLoss doesn't count that.
+S0B is only a little worse than S0A: the entrance is already full, so the extra 30% mostly waits outside.
+Almost no buses: they use the same blocked entrance, so only 0–2 got in.
