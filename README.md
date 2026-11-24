@@ -257,3 +257,26 @@ Ygeia tou Diktyou (No Gridlocks): Paroti o algorithmos evaze mpros to Green Wave
 
 
 
+
+---
+
+## Monte Carlo runner (`monte_carlo.py`) – Nov 2026
+
+Scenarios after the call with the professor (11 Nov): **S0A** normal traffic (70 %), **S0B** peak (+30 % → 91 %),
+each one also with a **CRASH** and with **WORKS** (roadworks) → 6 scenarios.
+
+Every run: 1 h warm-up with S0A traffic → 1 h scenario (measured) → 30 min clearance.
+Each scenario runs 30 times. What changes per run: SUMO seed, Poisson arrivals of cars, and for the crash scenarios
+the crash edge on the main road, the crash start time (5–20 min into the scenario) and its duration (15–40 min).
+Run *i* uses the same seed and the same crash in S0A_CRASH and S0B_CRASH (fair comparison).
+
+```
+python monte_carlo.py                      # 6 scenarios x 30 runs
+python monte_carlo.py --runs 3 --jobs 4    # quick test
+python monte_carlo.py --gui --single S0B_CRASH 1
+```
+Results in `output/mc/`: `mc_runs.csv` (one row per run), `mc_summary.csv` (mean, std, 95 % CI per scenario),
+`mc_results.json` (for the website), and the raw `tripinfo_<run>.xml` files (time loss, depart delay, CO2, fuel per vehicle).
+
+**Ambulance fix:** the ambulance is added through TraCI (not the route file), so `--scale` can no longer delete it,
+and if the entry road is blocked by the insertion queue it enters one edge further along the main road.

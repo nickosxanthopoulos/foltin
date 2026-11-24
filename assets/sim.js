@@ -43,7 +43,7 @@
 
   // ------------------------------------------------------------------ scenarios (exact numbers of `code`)
   const SCENARIOS = {
-    S0: { id: 'S0', name: 'Baseline off-peak', scale: 0.6, teleport: -1, desc: 'Κανονική κίνηση (scale 0.6) – χωρίς διαταραχή.' },
+    S0: { id: 'S0', name: 'Baseline off-peak', scale: 0.7, teleport: -1, desc: 'Κανονική κίνηση (scale 0.7) – χωρίς διαταραχή.' },
     S1: { id: 'S1', name: 'Αυξημένη κίνηση',   scale: 0.9, teleport: -1, desc: 'Scale 0.9 – περισσότερα οχήματα στον ίδιο δρόμο.' },
     S2: { id: 'S2', name: 'Ατύχημα',            scale: 0.8, teleport: -1, desc: 'Step 1000: ακινητοποιείται όχημα στην edge 436872460.' },
     S3: { id: 'S3', name: 'Έργα (1 λωρίδα)',    scale: 0.8, teleport: 150, desc: 'Step 1000: κλείνει η λωρίδα 436872467#0_0 (setDisallowed).' },
@@ -429,11 +429,21 @@
         const rest = [];
         for (const p of this.pending) {
           const T = p.flow.type;
-          const v = this.makeVehicle(T, p.flow.route, p.name ? { id: p.name } : {});
+          let v = this.makeVehicle(T, p.flow.route, p.name ? { id: p.name } : {});
           if (T === 'smart_car') v.smart = true;
           if (T === 'ambulance_type') { v.smart = this.dynGps; }
           if (T === 'ambient') v.color = null;
-          if (!this.tryInsert(v)) { if (this.t - p.t < 120 || T === 'ambulance_type') rest.push(p); else this.stats.dropped = (this.stats.dropped || 0) + 1; }
+          let ins = this.tryInsert(v);
+          // Ambulance: if the entry edge is blocked by the insertion queue for >15 s, enter further down the route
+          // (same rule as run_ilioupoli.py) so the ambulance can never be stuck outside the network.
+          if (!ins && T === 'ambulance_type' && this.t - p.t >= 15) {
+            const R = p.flow.route;
+            for (let k = 1; k < Math.min(R.length - 1, 12) && !ins; k++) {
+              const v2 = this.makeVehicle(T, R.slice(k), {}); v2.smart = this.dynGps;
+              if (this.tryInsert(v2)) { v = v2; ins = true; this.emit('[INFO] Entry road blocked - AMBULANCE_01 enters at edge ' + this.net.E[R[k]].id + ' (+' + Math.round(this.t - p.t) + ' s)', 'amb'); }
+            }
+          }
+          if (!ins) { if (this.t - p.t < 120 || T === 'ambulance_type') rest.push(p); else this.stats.dropped = (this.stats.dropped || 0) + 1; }
           else {
             if (T === 'ambulance_type') {
               this.ambulance = v; this.amb.start = this.t; this.amb.entered = true;

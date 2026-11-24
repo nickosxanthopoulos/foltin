@@ -19,7 +19,7 @@ config_path = os.path.join(script_dir, "ilioupoli.sumocfg.cfg")
 # ==========================================
 # ΕΠΙΛΟΓΗ ΣΕΝΑΡΙΟΥ (S0, S1, S2, ή S3)
 # ==========================================
-CURRENT_SCENARIO = "S3"  # Άλλαξε αυτό σε S1, S2 ή S3
+CURRENT_SCENARIO = "S2"  # Άλλαξε αυτό σε S1, S2 ή S3
 
 sumoBinary = "sumo-gui"
 sumoCmd = [sumoBinary, "-c", config_path]
@@ -29,19 +29,31 @@ if CURRENT_SCENARIO == "S1":
     sumoCmd.extend(["--scale", "0.9", "--time-to-teleport", "-1"])
     print("[SCENARIO] S1 Active: Kinisi ayksimeni kata 30% apo to Baseline (Teleports Disabled)")
 elif CURRENT_SCENARIO == "S2":
-    sumoCmd.extend(["--scale", "0.8", "--time-to-teleport", "-1"])
+    sumoCmd.extend(["--scale", "0.8", "--time-to-teleport", "150"])
     print("[SCENARIO] S2 Active: Atyxhma sth deksia lwrida")
 elif CURRENT_SCENARIO == "S3":
     # Βάζουμε teleport 150 αντί για -1 για να αποφύγουμε το μόνιμο gridlock
     sumoCmd.extend(["--scale", "0.8", "--time-to-teleport", "150"]) 
     print("[SCENARIO] S3 Active: One-lane construction (Erga)")
 elif CURRENT_SCENARIO == "S0":
-    sumoCmd.extend(["--scale", "0.6", "--time-to-teleport", "-1"])
+    sumoCmd.extend(["--scale", "0.7", "--time-to-teleport", "-1"])
     print("[SCENARIO] S0 Active: Baseline off-peak traffic 70%")
 else:
     print(f"[SCENARIO] {CURRENT_SCENARIO} Active: Normal traffic")
 
- 
+# ==========================================
+# OUTPUT FILES (per scenario) - needed for delays & economic costs
+# tripinfo: one line per vehicle (duration, timeLoss, waitingTime, vType, fuel)
+# ==========================================
+out_dir = os.path.join(script_dir, "output")
+os.makedirs(out_dir, exist_ok=True)
+sumoCmd.extend([
+    "--tripinfo-output", os.path.join(out_dir, f"tripinfo_{CURRENT_SCENARIO}.xml"),
+    "--tripinfo-output.write-unfinished", "true",   # vehicles still driving at the end are also written
+    "--device.emissions.probability", "1",          # adds fuel / CO2 per vehicle to tripinfo
+    "--summary-output", os.path.join(out_dir, f"summary_{CURRENT_SCENARIO}.xml"),
+    "--statistic-output", os.path.join(out_dir, f"statistics_{CURRENT_SCENARIO}.xml"),
+])
 
 traci.start(sumoCmd)
 
@@ -56,8 +68,43 @@ bus_start_time = -1
 obstacle_created = False 
 truck_entered = False 
 
+AMBULANCE_ID = "AMBULANCE_01"
+AMBULANCE_DEPART = 1900
+ambulance_added = False
+ambulance_arrived = False
+bus_id = None   # first bus that really enters (city_bus.0 may be removed by --scale)
+
 while step < 6000:
     traci.simulationStep()
+
+    # ==================================================
+    # AMBULANCE SPAWN (TraCI) - not affected by --scale
+    # ==================================================
+    if step == AMBULANCE_DEPART and not ambulance_added:
+        try:
+            amb_route = traci.simulation.findRoute("66113514#0", "842961266#4", "ambulance_type")
+            if amb_route.edges:
+                traci.route.add("ambulance_route", amb_route.edges)
+                traci.vehicle.add(
+                    vehID=AMBULANCE_ID,
+                    routeID="ambulance_route",
+                    typeID="ambulance_type",
+                    departLane="free",
+                    departPos="free",
+                    departSpeed="0"   # "max" needs a big gap and fails in heavy traffic
+                )
+                ambulance_added = True
+                print(f"[INFO] AMBULANCE_01 added to the insertion queue at step {step}")
+            else:
+                print(f"[AMBULANCE ERROR] No route found for ambulance_type!")
+        except Exception as e:
+            print(f"[AMBULANCE ERROR] Step {step}: {e}")
+
+    # Warn if the ambulance is waiting to enter because the first road is full
+    if ambulance_added and not ambulance_entered and step > AMBULANCE_DEPART and step % 30 == 0:
+        if AMBULANCE_ID in traci.simulation.getPendingVehicles():
+            print(f"[WARNING] Step {step}: AMBULANCE_01 still waiting to enter "
+                  f"({step - AMBULANCE_DEPART}s) - entry road 66113514#0 is full")
 
     # ==================================================
     # DYNAMIC FREIGHT TRUCK FLOW (80 trucks / hour)
@@ -133,14 +180,18 @@ while step < 6000:
             print(f"[SCENARIO S3] ERGA: H δεξιά λωρίδα έκλεισε στο step {step} λόγω έργων!")
         except:
             pass
-    # === TRACKER ΓΙΑ ΤΟ ΛΕΩΦΟΡΕΙΟ ===
-    if "city_bus.0" in active_vehicles and not bus_entered:
-        bus_entered = True
-        bus_start_time = step  # <--- Apothikeuei to step poy ksekinise
-        print(f"\n==================================================")
-        print(f"[INFO] To lewforeio (city_bus.0) mphke sto step {step}")
-        
-    if "city_bus.0" in arrived_vehicles:
+    # === TRACKER ΓΙΑ ΤΟ ΛΕΩΦΟΡΕΙΟ (first bus that really enters) ===
+    if not bus_entered:
+        for veh_id in traci.simulation.getDepartedIDList():
+            if veh_id.startswith("city_bus"):
+                bus_id = veh_id
+                bus_entered = True
+                bus_start_time = step
+                print(f"\n==================================================")
+                print(f"[INFO] To lewforeio ({bus_id}) mphke sto step {step}")
+                break
+
+    if bus_id is not None and bus_id in arrived_vehicles:
         bus_duration = step - bus_start_time  # <--- Ypologizei th diarkeia
         print(f"\n==================================================")
         print(f"[INFO] To lewforeio eftase ston proorismo tou sto step {step}")
@@ -165,25 +216,13 @@ while step < 6000:
         print(f"==================================================\n")
 
     if "AMBULANCE_01" in arrived_vehicles:
+        ambulance_arrived = True
         total_time = step - ambulance_start_time
         print(f"\n==================================================")
         print(f"!!! TO ASTHENOFORO (AMBULANCE_01) EFTASE STON PROORISMO TOU !!!")
         print(f"--> Synolikos Xronos Diadromhs: {total_time} deuterolepta (Step {step}).")
         print(f"==================================================\n")
 
-    # === TRACKER ΓΙΑ ΤΟ ΛΕΩΦΟΡΕΙΟ ===
-    if "city_bus.0" in active_vehicles and not bus_entered:
-        bus_entered = True
-        print(f"[INFO] To lewforeio (city_bus.0) mphke sto step {step}")
-    
-
-        
-        if active_tls != "":
-            try:
-                traci.trafficlight.setProgram(active_tls, "0")
-                active_tls = ""
-            except traci.exceptions.TraCIException:
-                pass
 
     # 2. DYNAMIKO GREEN WAVE
     if "AMBULANCE_01" in active_vehicles:
@@ -249,6 +288,11 @@ while step < 6000:
         print(f"Step {step}: {len(active_vehicles)} total cars. "
               f"{stopped_cars} stopped (Total delay: {total_delay}s).")
     step += 1
+
+if not ambulance_entered:
+    print("[WARNING] AMBULANCE_01 NEVER entered the network in this run!")
+elif not ambulance_arrived:
+    print(f"[WARNING] AMBULANCE_01 entered at step {ambulance_start_time} but did NOT arrive before step {step}")
 
 traci.close()
 print("Simulation finished.")
