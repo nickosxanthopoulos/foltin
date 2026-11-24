@@ -293,6 +293,10 @@ SOB WORKS looks better than SOB normal because there were less cars entering the
 
 This explains three odd results:
 
+
+The Monte Carlo repeats each scenario 30 times with random seeds, arrival times and crash positions. It uses paired seeds across scenarios, and reports the mean with a 95% confidence interval.
+
+
 WORKS looks better than the baseline: a closed lane lets even fewer main-road vehicles in. The main-road vehicles that did get in lost more time (340 s vs 309 s), but there were fewer of them, so the overall average went down. The worst delay happens outside the network, waiting to enter, and timeLoss doesn't count that.
 S0B is only a little worse than S0A: the entrance is already full, so the extra 30% mostly waits outside.
 Almost no buses: they use the same blocked entrance, so only 0–2 got in.
