@@ -300,3 +300,9 @@ The Monte Carlo repeats each scenario 30 times with random seeds, arrival times 
 WORKS looks better than the baseline: a closed lane lets even fewer main-road vehicles in. The main-road vehicles that did get in lost more time (340 s vs 309 s), but there were fewer of them, so the overall average went down. The worst delay happens outside the network, waiting to enter, and timeLoss doesn't count that.
 S0B is only a little worse than S0A: the entrance is already full, so the extra 30% mostly waits outside.
 Almost no buses: they use the same blocked entrance, so only 0–2 got in.
+
+**Demand calibration (25 Nov 2026).** The quick test showed the main road lets through only ~870 veh/h
+(~650 veh/h with the roadworks) while the route file sent ~3300 veh/h at 100 % → 38 % of the vehicles never entered.
+`DEMAND_VPH` in `monte_carlo.py` now sets the main road to 1000 veh/h at 100 % (S0A ≈ 700, S0B ≈ 910) and the trucks
+to 80 veh/h. Vehicles are counted by their *scheduled* departure and the results report **total delay =
+waiting to enter (departDelay) + time lost inside the network (timeLoss)** – this is the number to use for costs.

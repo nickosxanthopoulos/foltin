@@ -67,7 +67,7 @@ OUT = os.path.join(HERE, "output", "mc")
 # --------------------------------------------------------------------------- settings
 WARMUP_END = 3600          # end of warm-up (s)
 SCEN_END = 7200            # end of the measured scenario hour (s)
-SIM_END = 9000             # extra 30 min so vehicles can finish their trip
+SIM_END = 10800            # extra hour so queued vehicles can still enter and finish
 WARMUP_SCALE = 0.7         # S0A traffic level used for the warm-up
 TELEPORT = 300             # --time-to-teleport, the SAME for every scenario (fair comparison)
 
@@ -76,7 +76,6 @@ AMB_ID = "AMBULANCE_01"
 AMB_DEPART = WARMUP_END + 900      # ambulance enters 15 min into the scenario hour
 AMB_ENTRY_RETRY = 15               # s: if it cannot enter, try the next edge of the route
 
-TRUCK_EVERY = 45                   # TraCI freight trucks: one every 45 s (80 / h)
 
 WORKS_LANE = "436872467#0_0"       # roadworks: right lane closed for the whole scenario hour
 
@@ -98,6 +97,22 @@ SCENARIOS = {
 GROUP = {"normal_car": "car", "smart_car": "car", "bus_type": "bus",
          "freight_truck": "truck", "ambulance_type": "ambulance"}
 GROUPS = ["car", "bus", "truck", "ambulance", "all"]
+
+# DEMAND at 100 % (veh / hour) - overrides the numbers in osm.rou.xml (from/to and vTypes are still read there).
+# Calibrated on the measured capacity of the main road: ~870 veh/h normally, ~650 veh/h with the roadworks
+# (quick test, Nov 2026). Main road total at 100 % = 1000 veh/h ->
+#   S0A (x0.70) =  700 veh/h  ~ 80 % of capacity  -> traffic flows
+#   S0B (x0.91) =  910 veh/h  > capacity           -> peak-hour queues
+#   WORKS: capacity drops to ~650 veh/h            -> clearly worse than without roadworks
+DEMAND_VPH = {
+    "main_stubborn": 600,     # main road, drivers that keep their route  (65 % of the main cars)
+    "main_smart":    320,     # main road, drivers with GPS rerouting     (35 %)
+    "trucks_main":    80,     # freight trucks on the main road (was 720/h + 80/h TraCI before)
+    "bg_traffic_1":  460,     # neighbourhood traffic (unchanged)
+    "bg_traffic_2":  460,
+    "bg_traffic_3":  480,
+    "city_bus":       10,
+}
 
 # flows / trips of osm.rou.xml that are NOT copied (old tests, ambulance is added by TraCI)
 SKIP_IDS = {"trucks_main_TEST", "THE_GHOST_TRUCK", "AMBULANCE_01"}
@@ -130,6 +145,10 @@ def write_demand(scenario, path):
             f.set("id", f"{fl.get('id')}_{tag}")
             f.set("begin", f"{begin:g}")
             f.set("end", f"{p1:g}")
+            if fl.get("id") in DEMAND_VPH:                       # calibrated demand (see DEMAND_VPH)
+                for k in ("vehsPerHour", "probability", "number", "period"):
+                    f.attrib.pop(k, None)
+                f.set("vehsPerHour", str(DEMAND_VPH[fl.get("id")]))
             if "vehsPerHour" in f.attrib:
                 rate = float(f.attrib.pop("vehsPerHour")) * scale / 3600.0      # veh / s
                 f.set("period", f"exp({rate:.6f})")                              # Poisson arrivals
@@ -190,8 +209,6 @@ def run_single(scenario, run, gui=False):
         if main_edges is None:
             r = con.simulation.findRoute(MAIN_FROM, MAIN_TO, "ambulance_type")
             main_edges = list(r.edges)
-            rt = con.simulation.findRoute(MAIN_FROM, MAIN_TO, "freight_truck")
-            con.route.add("main_truck_route", list(rt.edges) if rt.edges else main_edges)
             if crash is not None:
                 # candidate crash edges: on the main road, >= 2 lanes, long enough, not first/last edge
                 cands = [e for e in main_edges[1:-1]
@@ -199,16 +216,6 @@ def run_single(scenario, run, gui=False):
                          and con.lane.getLength(e + "_0") >= CRASH_MIN_EDGE_LEN]
                 crash["candidates"] = cands
                 crash["edge"] = rng.choice(cands) if cands else None
-
-        # ---------------- freight trucks (TraCI, not scaled), whole demand period
-        if 0 < t <= SCEN_END and int(t) % TRUCK_EVERY == 0:
-            try:
-                tid = f"trucks_main_{int(t)}"
-                con.vehicle.add(tid, "main_truck_route", typeID="freight_truck",
-                                departLane="free", departPos="free", departSpeed="max")
-                con.vehicle.setColor(tid, (139, 69, 19, 255))
-            except traci.exceptions.TraCIException:
-                pass
 
         # ---------------- ambulance: added by TraCI so it can never be removed by scaling
         if amb["phase"] == "wait" and t >= AMB_DEPART:
@@ -371,7 +378,9 @@ def analyse_tripinfo(path, amb_ids=()):
     for _, el in ET.iterparse(path, events=("end",)):
         if el.tag != "tripinfo":
             continue
-        dep = float(el.get("depart", -1))
+        # count vehicles by the time they WANTED to leave (scheduled departure), not the time they managed
+        # to enter: otherwise cars blocked at the entrance by a disruption would disappear from the results
+        dep = float(el.get("depart", -1)) - float(el.get("departDelay", 0))
         if WARMUP_END <= dep < SCEN_END or el.get("id") in amb_ids:
             g = GROUP.get(el.get("vType"), "car")
             em = el.find("emissions")
@@ -397,6 +406,9 @@ def analyse_tripinfo(path, amb_ids=()):
             mean_travel_time_s=a["duration"] / n if n else None,
             mean_time_loss_s=a["timeLoss"] / n if n else None,
             total_time_loss_h=a["timeLoss"] / 3600.0,
+            # TOTAL DELAY = waiting to enter the network + time lost inside it  -> use this for costs
+            mean_total_delay_s=(a["timeLoss"] + a["departDelay"]) / n if n else None,
+            total_delay_h=(a["timeLoss"] + a["departDelay"]) / 3600.0,
             mean_waiting_s=a["waiting"] / n if n else None,
             mean_depart_delay_s=a["departDelay"] / n if n else None,
             total_depart_delay_h=a["departDelay"] / 3600.0,
@@ -407,7 +419,8 @@ def analyse_tripinfo(path, amb_ids=()):
 
 
 # --------------------------------------------------------------------------- tables
-RUN_FIELDS = ["vehicles", "unfinished", "mean_travel_time_s", "mean_time_loss_s", "total_time_loss_h",
+RUN_FIELDS = ["vehicles", "unfinished", "mean_total_delay_s", "total_delay_h",
+              "mean_travel_time_s", "mean_time_loss_s", "total_time_loss_h",
               "mean_depart_delay_s", "total_depart_delay_h", "total_km", "CO2_kg", "fuel_kg"]
 
 
@@ -483,7 +496,7 @@ def write_tables():
     print(f"\nWrote {len(rows)} runs -> {os.path.join(OUT, 'mc_runs.csv')}")
     print(f"Comparison table      -> {os.path.join(OUT, 'mc_summary.csv')}")
     # short console table
-    key = ["all_mean_time_loss_s", "all_total_time_loss_h", "amb_response_time_s", "all_CO2_kg", "teleports"]
+    key = ["all_mean_total_delay_s", "all_total_delay_h", "amb_response_time_s", "all_CO2_kg", "never_inserted"]
     print(f"\n{'scenario':<11}" + "".join(f"{k:>24}" for k in key))
     for sc in SCENARIOS:
         line = f"{sc:<11}"
