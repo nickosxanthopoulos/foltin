@@ -280,3 +280,10 @@ Results in `output/mc/`: `mc_runs.csv` (one row per run), `mc_summary.csv` (mean
 
 **Ambulance fix:** the ambulance is added through TraCI (not the route file), so `--scale` can no longer delete it,
 and if the entry road is blocked by the insertion queue it enters one edge further along the main road.
+
+
+
+
+**IMPORTANT**
+
+Run 1 of S0A_CRASH and run 1 of S0B_CRASH get the same seed and the same crash. The only difference between them is the traffic level, so the comparison is fair. Statisticians call this "common random numbers".
